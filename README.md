@@ -1,7 +1,3273 @@
+local library = {
+		flags = { },
+		items = { }
+	}
+    if _G.Color == nil then _G.Color = Color3.fromRGB(8, 248, 59) end
+    if _G.Color2 == nil then _G.Color2 = Color3.fromRGB(0, 151, 156) end
+    -- Services
+	local players = game:GetService("Players")
+	local uis = game:GetService("UserInputService")
+	local runservice = game:GetService("RunService")
+	local tweenservice = game:GetService("TweenService")
+	local marketplaceservice = game:GetService("MarketplaceService")
+	local textservice = game:GetService("TextService")
+	local coregui = game:GetService("CoreGui")
+	local httpservice = game:GetService("HttpService")
+	local player = players.LocalPlayer
+	local mouse = player:GetMouse()
+	local camera = game.Workspace.CurrentCamera
+	library.theme = {
+        fontsize = 15,
+        titlesize = 18,
+        font = Enum.Font.Code,
+        background = "rbxassetid://5553946656",
+        tilesize = 50,
+        cursor = false,
+        cursorimg = "https://t0.rbxcdn.com/42f66da98c40252ee151326a82aab51f",
+        backgroundcolor = Color3.fromRGB(20, 20, 20),
+        tabstextcolor = Color3.fromRGB(240, 240, 240),
+        bordercolor = Color3.fromRGB(60, 60, 60),
+        accentcolor = _G.Color,
+        accentcolor2 = _G.Color2,
+        outlinecolor = Color3.fromRGB(60, 60, 60),
+        outlinecolor2 = Color3.fromRGB(0, 0, 0),
+        sectorcolor = Color3.fromRGB(30, 30, 30),
+        toptextcolor = _G.Color,
+        topheight = 48,
+        topcolor = Color3.fromRGB(30, 30, 30),
+        topcolor2 = Color3.fromRGB(15, 15, 15),
+        buttoncolor = Color3.fromRGB(49, 49, 49),
+        buttoncolor2 = Color3.fromRGB(39, 39, 39),
+        itemscolor = Color3.fromRGB(200, 200, 200),
+        itemscolor2 = Color3.fromRGB(210, 210, 210)}
+	if library.theme.cursor and Drawing then
+		local success = pcall(function()
+			library.cursor = Drawing.new("Image")
+			library.cursor.Data = game:HttpGet(library.theme.cursorimg)
+			library.cursor.Size = Vector2.new(64, 64)
+			library.cursor.Visible = uis.MouseEnabled
+			library.cursor.Rounding = 0
+			library.cursor.Position = Vector2.new(mouse.X - 32, mouse.Y + 6)
+		end)
+		if success and library.cursor then
+			uis.InputChanged:Connect(function(input)
+				if uis.MouseEnabled then
+					if input.UserInputType == Enum.UserInputType.MouseMovement then
+						library.cursor.Position = Vector2.new(input.Position.X - 32, input.Position.Y + 7)
+					end
+				end
+			end)
+			game:GetService("RunService").RenderStepped:Connect(function()
+				uis.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.ForceHide
+				library.cursor.Visible = uis.MouseEnabled and (uis.MouseIconEnabled or game:GetService("GuiService").MenuIsOpen)
+			end)
+		elseif not success and library.cursor then
+			library.cursor:Remove()
+		end
+	end
+	function library:CreateWatermark(name)
+		local gamename = marketplaceservice:GetProductInfo(game.PlaceId).Name
+		local watermark = { }
+		watermark.Visible = true
+		watermark.text = " " .. name:gsub("{game}", gamename):gsub("{fps}", "0 FPS") .. " "
+		watermark.main = Instance.new("ScreenGui", coregui)
+		watermark.main.Name = "Watermark"
+		if syn then
+			syn.protect_gui(watermark.main)
+		end
+		if getgenv().watermark then
+			getgenv().watermark:Remove()
+		end
+		getgenv().watermark = watermark.main
+		watermark.mainbar = Instance.new("Frame", watermark.main)
+		watermark.mainbar.Name = "Main"
+		watermark.mainbar.BorderColor3 = Color3.fromRGB(80, 80, 80)
+		watermark.mainbar.Visible = watermark.Visible
+		watermark.mainbar.BorderSizePixel = 0
+		watermark.mainbar.ZIndex = 5
+		watermark.mainbar.Position = UDim2.new(0, 1,0,1)
+		watermark.mainbar.Size = UDim2.new(0, 0, 0, 25)
+		watermark.Gradient = Instance.new("UIGradient", watermark.mainbar)
+		watermark.Gradient.Rotation = 90
+		watermark.Gradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0.00, Color3.fromRGB(40, 40, 40)),
+			ColorSequenceKeypoint.new(1.00, Color3.fromRGB(10, 10, 10))
+		})
+		watermark.Outline = Instance.new("Frame", watermark.mainbar)
+		watermark.Outline.Name = "outline"
+		watermark.Outline.ZIndex = 4
+		watermark.Outline.BorderSizePixel = 0
+		watermark.Outline.Visible = watermark.Visible
+		watermark.Outline.BackgroundColor3 = library.theme.outlinecolor
+		watermark.Outline.Position = UDim2.fromOffset(-1, -1)
+		watermark.BlackOutline = Instance.new("Frame", watermark.mainbar)
+		watermark.BlackOutline.Name = "blackline"
+		watermark.BlackOutline.ZIndex = 3
+		watermark.BlackOutline.BorderSizePixel = 0
+		watermark.BlackOutline.BackgroundColor3 = library.theme.outlinecolor2
+		watermark.BlackOutline.Visible = watermark.Visible
+		watermark.BlackOutline.Position = UDim2.fromOffset(-2, -2)
+		watermark.label = Instance.new("TextLabel", watermark.mainbar)
+		watermark.label.Name = "FPSLabel"
+		watermark.label.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		watermark.label.BackgroundTransparency = 1.000
+		watermark.label.Position = UDim2.new(0, 0, 0, 0)
+		watermark.label.Size = UDim2.new(0, 238, 0, 25)
+		watermark.label.Font = library.theme.font
+		watermark.label.ZIndex = 6
+		watermark.label.Visible = watermark.Visible
+		watermark.label.Text = watermark.text
+		watermark.label.TextColor3 = Color3.fromRGB(255, 255, 255)
+		watermark.label.TextSize = 15
+		watermark.label.TextStrokeTransparency = 0.000
+		watermark.label.TextXAlignment = Enum.TextXAlignment.Left
+		watermark.label.Size = UDim2.new(0, watermark.label.TextBounds.X + 10, 0, 25)
+		watermark.topbar = Instance.new("Frame", watermark.mainbar)
+		watermark.topbar.Name = "TopBar"
+		watermark.topbar.ZIndex = 6
+		watermark.topbar.BackgroundColor3 = library.theme.accentcolor
+		watermark.topbar.BorderSizePixel = 0
+		watermark.topbar.Visible = watermark.Visible
+		watermark.topbar.Size = UDim2.new(0, 0, 0, 1)
+		watermark.mainbar.Size = UDim2.new(0, watermark.label.TextBounds.X, 0, 25)
+		watermark.topbar.Size = UDim2.new(0, watermark.label.TextBounds.X + 6, 0, 1)
+		watermark.Outline.Size = watermark.mainbar.Size + UDim2.fromOffset(2, 2)
+		watermark.BlackOutline.Size = watermark.mainbar.Size + UDim2.fromOffset(4, 4)
+		watermark.mainbar.Size = UDim2.new(0, watermark.label.TextBounds.X + 4, 0, 25)
+		watermark.label.Size = UDim2.new(0, watermark.label.TextBounds.X + 4, 0, 25)
+		watermark.topbar.Size = UDim2.new(0, watermark.label.TextBounds.X + 6, 0, 1)
+		watermark.Outline.Size = watermark.mainbar.Size + UDim2.fromOffset(2, 2)
+		watermark.BlackOutline.Size = watermark.mainbar.Size + UDim2.fromOffset(4, 4)
+		local startTime, counter, oldfps = os.clock(), 0, nil
+		runservice.Heartbeat:Connect(function()
+			watermark.label.Visible = watermark.Visible
+			watermark.mainbar.Visible = watermark.Visible
+			watermark.topbar.Visible = watermark.Visible
+			watermark.Outline.Visible = watermark.Visible
+			watermark.BlackOutline.Visible = watermark.Visible
+			if not name:find("{fps}") then
+				watermark.label.Text = " " .. name:gsub("{game}", gamename):gsub("{fps}", "0 FPS") .. " "
+			end
+			if name:find("{fps}") then
+				local currentTime = os.clock()
+				counter = counter + 1
+				if currentTime - startTime >= 1 then
+					local fps = math.floor(counter / (currentTime - startTime))
+					counter = 0
+					startTime = currentTime
+					if fps ~= oldfps then
+						watermark.label.Text = " " .. name:gsub("{game}", gamename):gsub("{fps}", fps .. " FPS") .. " "
+						watermark.label.Size = UDim2.new(0, watermark.label.TextBounds.X + 10, 0, 25)
+						watermark.mainbar.Size = UDim2.new(0, watermark.label.TextBounds.X, 0, 25)
+						watermark.topbar.Size = UDim2.new(0, watermark.label.TextBounds.X, 0, 1)
+						watermark.Outline.Size = watermark.mainbar.Size + UDim2.fromOffset(2, 2)
+						watermark.BlackOutline.Size = watermark.mainbar.Size + UDim2.fromOffset(4, 4)
+					end
+					oldfps = fps
+				end
+			end
+		end)
+		watermark.mainbar.MouseEnter:Connect(function()
+			tweenservice:Create(watermark.mainbar, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+				BackgroundTransparency = 1,
+				Active = false
+			}):Play()
+			tweenservice:Create(watermark.topbar, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+				BackgroundTransparency = 1,
+				Active = false
+			}):Play()
+			tweenservice:Create(watermark.label, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+				TextTransparency = 1,
+				Active = false
+			}):Play()
+			tweenservice:Create(watermark.Outline, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+				BackgroundTransparency = 1,
+				Active = false
+			}):Play()
+			tweenservice:Create(watermark.BlackOutline, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+				BackgroundTransparency = 1,
+				Active = false
+			}):Play()
+		end)
+		watermark.mainbar.MouseLeave:Connect(function()
+			tweenservice:Create(watermark.mainbar, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+				BackgroundTransparency = 0,
+				Active = true
+			}):Play()
+			tweenservice:Create(watermark.topbar, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+				BackgroundTransparency = 0,
+				Active = true
+			}):Play()
+			tweenservice:Create(watermark.label, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+				TextTransparency = 0,
+				Active = true
+			}):Play()
+			tweenservice:Create(watermark.Outline, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+				BackgroundTransparency = 0,
+				Active = true
+			}):Play()
+			tweenservice:Create(watermark.BlackOutline, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+				BackgroundTransparency = 0,
+				Active = true
+			}):Play()
+		end)
+		function watermark:UpdateTheme(theme)
+			theme = theme or library.theme
+			watermark.Outline.BackgroundColor3 = theme.outlinecolor
+			watermark.BlackOutline.BackgroundColor3 = theme.outlinecolor2
+			watermark.label.Font = theme.font
+			watermark.topbar.BackgroundColor3 = theme.accentcolor
+		end
+		return watermark
+	end
+	function library:CreateWindow(name, hidebutton)
+		local window = { }
+		window.name = name or ""
+		window.size = UDim2.fromOffset(492, 598)
+		window.hidebutton = hidebutton or Enum.KeyCode.RightControl
+		window.theme = library.theme
+		local updateevent = Instance.new("BindableEvent")
+		function window:UpdateTheme(theme)
+			updateevent:Fire(theme or library.theme)
+			window.theme = (theme or library.theme)
+		end
+		window.Main = Instance.new("ScreenGui", coregui)
+		window.Main.Name = name
+		window.Main.DisplayOrder = 15
+		if syn then
+			syn.protect_gui(window.Main)
+		end
+		if getgenv().uilib then
+			getgenv().uilib:Remove()
+		end
+		getgenv().uilib = window.Main
+		local dragging, dragInput, dragStart, startPos
+		uis.InputChanged:Connect(function(input)
+			if input == dragInput and dragging then
+				local delta = input.Position - dragStart
+				window.Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+			end
+		end)
+		local dragstart = function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = true
+				dragStart = input.Position
+				startPos = window.Frame.Position
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
+						dragging = false
+					end
+				end)
+			end
+		end
+		local dragend = function(input)
+			if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+				dragInput = input
+			end
+		end
+		window.Frame = Instance.new("TextButton", window.Main)
+		window.Frame.Name = "main"
+		window.Frame.Position = UDim2.fromScale(0.5, 0.5)
+		window.Frame.BorderSizePixel = 0
+		window.Frame.Size = window.size
+		window.Frame.AutoButtonColor = false
+		window.Frame.Text = ""
+		window.Frame.BackgroundColor3 = window.theme.backgroundcolor
+		window.Frame.AnchorPoint = Vector2.new(0.5, 0.5)
+		updateevent.Event:Connect(function(theme)
+			window.Frame.BackgroundColor3 = theme.backgroundcolor
+		end)
+		uis.InputBegan:Connect(function(key)
+			if key.KeyCode == window.hidebutton then
+				window.Frame.Visible = not window.Frame.Visible
+			end
+		end)
+		local function checkIfGuiInFront(Pos)
+			local objects = coregui:GetGuiObjectsAtPosition(Pos.X, Pos.Y)
+			for i, v in pairs(objects) do
+				if not string.find(v:GetFullName(), window.name) then
+					table.remove(objects, i)
+				end
+			end
+			return (#objects ~= 0 and objects[1].AbsolutePosition ~= Pos)
+		end
+		window.BlackOutline = Instance.new("Frame", window.Frame)
+		window.BlackOutline.Name = "outline"
+		window.BlackOutline.ZIndex = 1
+		window.BlackOutline.Size = window.size + UDim2.fromOffset(2, 2)
+		window.BlackOutline.BorderSizePixel = 0
+		window.BlackOutline.BackgroundColor3 = window.theme.outlinecolor2
+		window.BlackOutline.Position = UDim2.fromOffset(-1, -1)
+		updateevent.Event:Connect(function(theme)
+			window.BlackOutline.BackgroundColor3 = theme.outlinecolor2
+		end)
+		window.Outline = Instance.new("Frame", window.Frame)
+		window.Outline.Name = "outline"
+		window.Outline.ZIndex = 0
+		window.Outline.Size = window.size + UDim2.fromOffset(4, 4)
+		window.Outline.BorderSizePixel = 0
+		window.Outline.BackgroundColor3 = window.theme.outlinecolor
+		window.Outline.Position = UDim2.fromOffset(-2, -2)
+		updateevent.Event:Connect(function(theme)
+			window.Outline.BackgroundColor3 = theme.outlinecolor
+		end)
+		window.BlackOutline2 = Instance.new("Frame", window.Frame)
+		window.BlackOutline2.Name = "outline"
+		window.BlackOutline2.ZIndex = -1
+		window.BlackOutline2.Size = window.size + UDim2.fromOffset(6, 6)
+		window.BlackOutline2.BorderSizePixel = 0
+		window.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+		window.BlackOutline2.Position = UDim2.fromOffset(-3, -3)
+		updateevent.Event:Connect(function(theme)
+			window.BlackOutline2.BackgroundColor3 = theme.outlinecolor2
+		end)
+		window.TopBar = Instance.new("Frame", window.Frame)
+		window.TopBar.Name = "top"
+		window.TopBar.Size = UDim2.fromOffset(window.size.X.Offset, window.theme.topheight)
+		window.TopBar.BorderSizePixel = 0
+		window.TopBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		window.TopBar.InputBegan:Connect(dragstart)
+		window.TopBar.InputChanged:Connect(dragend)
+		updateevent.Event:Connect(function(theme)
+			window.TopBar.Size = UDim2.fromOffset(window.size.X.Offset, theme.topheight)
+		end)
+		window.TopGradient = Instance.new("UIGradient", window.TopBar)
+		window.TopGradient.Rotation = 90
+		window.TopGradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0.00, window.theme.topcolor),
+			ColorSequenceKeypoint.new(1.00, window.theme.topcolor2)
+		})
+		updateevent.Event:Connect(function(theme)
+			window.TopGradient.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0.00, theme.topcolor),
+				ColorSequenceKeypoint.new(1.00, theme.topcolor2)
+			})
+		end)
+		window.NameLabel = Instance.new("TextLabel", window.TopBar)
+		window.NameLabel.TextColor3 = window.theme.toptextcolor
+		window.NameLabel.Text = window.name
+		window.NameLabel.TextXAlignment = Enum.TextXAlignment.Left
+		window.NameLabel.Font = window.theme.font
+		window.NameLabel.Name = "title"
+		window.NameLabel.Position = UDim2.fromOffset(4, -2)
+		window.NameLabel.BackgroundTransparency = 1
+		window.NameLabel.Size = UDim2.fromOffset(190, window.TopBar.AbsoluteSize.Y / 2 - 2)
+		window.NameLabel.TextSize = window.theme.titlesize
+		updateevent.Event:Connect(function(theme)
+			window.NameLabel.TextColor3 = theme.toptextcolor
+			window.NameLabel.Font = theme.font
+			window.NameLabel.TextSize = theme.titlesize
+		end)
+		window.Line2 = Instance.new("Frame", window.TopBar)
+		window.Line2.Name = "line"
+		window.Line2.Position = UDim2.fromOffset(0, window.TopBar.AbsoluteSize.Y / 2.1)
+		window.Line2.Size = UDim2.fromOffset(window.size.X.Offset, 1)
+		window.Line2.BorderSizePixel = 0
+		window.Line2.BackgroundColor3 = window.theme.accentcolor
+		updateevent.Event:Connect(function(theme)
+			window.Line2.BackgroundColor3 = theme.accentcolor
+		end)
+		window.TabList = Instance.new("Frame", window.TopBar)
+		window.TabList.Name = "tablist"
+		window.TabList.BackgroundTransparency = 1
+		window.TabList.Position = UDim2.fromOffset(0, window.TopBar.AbsoluteSize.Y / 2 + 1)
+		window.TabList.Size = UDim2.fromOffset(window.size.X.Offset, window.TopBar.AbsoluteSize.Y / 2)
+		window.TabList.BorderSizePixel = 0
+		window.TabList.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		window.TabList.InputBegan:Connect(dragstart)
+		window.TabList.InputChanged:Connect(dragend)
+		window.BlackLine = Instance.new("Frame", window.Frame)
+		window.BlackLine.Name = "blackline"
+		window.BlackLine.Size = UDim2.fromOffset(window.size.X.Offset, 1)
+		window.BlackLine.BorderSizePixel = 0
+		window.BlackLine.ZIndex = 9
+		window.BlackLine.BackgroundColor3 = window.theme.outlinecolor2
+		window.BlackLine.Position = UDim2.fromOffset(0, window.TopBar.AbsoluteSize.Y)
+		updateevent.Event:Connect(function(theme)
+			window.BlackLine.BackgroundColor3 = theme.outlinecolor2
+		end)
+		window.BackgroundImage = Instance.new("ImageLabel", window.Frame)
+		window.BackgroundImage.Name = "background"
+		window.BackgroundImage.BorderSizePixel = 0
+		window.BackgroundImage.ScaleType = Enum.ScaleType.Tile
+		window.BackgroundImage.Position = window.BlackLine.Position + UDim2.fromOffset(0, 1)
+		window.BackgroundImage.Size = UDim2.fromOffset(window.size.X.Offset, window.size.Y.Offset - window.TopBar.AbsoluteSize.Y - 1)
+		window.BackgroundImage.Image = window.theme.background or ""
+		window.BackgroundImage.ImageTransparency = window.BackgroundImage.Image ~= "" and 0 or 1
+		window.BackgroundImage.ImageColor3 = Color3.new()
+		window.BackgroundImage.BackgroundColor3 = window.theme.backgroundcolor
+		window.BackgroundImage.TileSize = UDim2.new(0, window.theme.tilesize, 0, window.theme.tilesize)
+		updateevent.Event:Connect(function(theme)
+			window.BackgroundImage.Image = theme.background or ""
+			window.BackgroundImage.ImageTransparency = window.BackgroundImage.Image ~= "" and 0 or 1
+			window.BackgroundImage.BackgroundColor3 = theme.backgroundcolor
+			window.BackgroundImage.TileSize = UDim2.new(0, theme.tilesize, 0, theme.tilesize)
+		end)
+		window.Line = Instance.new("Frame", window.Frame)
+		window.Line.Name = "line"
+		window.Line.Position = UDim2.fromOffset(0, 0)
+		window.Line.Size = UDim2.fromOffset(60, 1)
+		window.Line.BorderSizePixel = 0
+		window.Line.BackgroundColor3 = window.theme.accentcolor
+		updateevent.Event:Connect(function(theme)
+			window.Line.BackgroundColor3 = theme.accentcolor
+		end)
+		window.ListLayout = Instance.new("UIListLayout", window.TabList)
+		window.ListLayout.FillDirection = Enum.FillDirection.Horizontal
+		window.ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		window.OpenedColorPickers = { }
+		window.Tabs = { }
+		function window:CreateTab(name)
+			local tab = { }
+			tab.name = name or ""
+			local textservice = game:GetService("TextService")
+			local size = textservice:GetTextSize(tab.name, window.theme.fontsize, window.theme.font, Vector2.new(200, 300))
+			tab.TabButton = Instance.new("TextButton", window.TabList)
+			tab.TabButton.TextColor3 = window.theme.tabstextcolor
+			tab.TabButton.Text = tab.name
+			tab.TabButton.AutoButtonColor = false
+			tab.TabButton.Font = window.theme.font
+			tab.TabButton.TextYAlignment = Enum.TextYAlignment.Center
+			tab.TabButton.BackgroundTransparency = 1
+			tab.TabButton.BorderSizePixel = 0
+			tab.TabButton.Size = UDim2.fromOffset(size.X + 15, window.TabList.AbsoluteSize.Y - 1)
+			tab.TabButton.Name = tab.name
+			tab.TabButton.TextSize = window.theme.fontsize
+			updateevent.Event:Connect(function(theme)
+				local size = textservice:GetTextSize(tab.name, theme.fontsize, theme.font, Vector2.new(200, 300))
+				tab.TabButton.TextColor3 = tab.TabButton.Name == "SelectedTab" and theme.accentcolor or theme.tabstextcolor
+				tab.TabButton.Font = theme.font
+				tab.TabButton.Size = UDim2.fromOffset(size.X + 15, window.TabList.AbsoluteSize.Y - 1)
+				tab.TabButton.TextSize = theme.fontsize
+			end)
+			tab.Left = Instance.new("ScrollingFrame", window.Frame)
+			tab.Left.Name = "leftside"
+			tab.Left.BorderSizePixel = 0
+			tab.Left.Size = UDim2.fromOffset(window.size.X.Offset / 2, window.size.Y.Offset - (window.TopBar.AbsoluteSize.Y + 1))
+			tab.Left.BackgroundTransparency = 1
+			tab.Left.Visible = false
+			tab.Left.ScrollBarThickness = 0
+			tab.Left.ScrollingDirection = "Y"
+			tab.Left.Position = window.BlackLine.Position + UDim2.fromOffset(0, 1)
+			tab.LeftListLayout = Instance.new("UIListLayout", tab.Left)
+			tab.LeftListLayout.FillDirection = Enum.FillDirection.Vertical
+			tab.LeftListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+			tab.LeftListLayout.Padding = UDim.new(0, 12)
+			tab.LeftListPadding = Instance.new("UIPadding", tab.Left)
+			tab.LeftListPadding.PaddingTop = UDim.new(0, 12)
+			tab.LeftListPadding.PaddingLeft = UDim.new(0, 12)
+			tab.LeftListPadding.PaddingRight = UDim.new(0, 12)
+			tab.Right = Instance.new("ScrollingFrame", window.Frame)
+			tab.Right.Name = "rightside"
+			tab.Right.ScrollBarThickness = 0
+			tab.Right.ScrollingDirection = "Y"
+			tab.Right.Visible = false
+			tab.Right.BorderSizePixel = 0
+			tab.Right.Size = UDim2.fromOffset(window.size.X.Offset / 2, window.size.Y.Offset - (window.TopBar.AbsoluteSize.Y + 1))
+			tab.Right.BackgroundTransparency = 1
+			tab.Right.Position = tab.Left.Position + UDim2.fromOffset(tab.Left.AbsoluteSize.X, 0)
+			tab.RightListLayout = Instance.new("UIListLayout", tab.Right)
+			tab.RightListLayout.FillDirection = Enum.FillDirection.Vertical
+			tab.RightListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+			tab.RightListLayout.Padding = UDim.new(0, 12)
+			tab.RightListPadding = Instance.new("UIPadding", tab.Right)
+			tab.RightListPadding.PaddingTop = UDim.new(0, 12)
+			tab.RightListPadding.PaddingLeft = UDim.new(0, 6)
+			tab.RightListPadding.PaddingRight = UDim.new(0, 12)
+			local block = false
+			function tab:SelectTab()
+				repeat
+					wait()
+				until block == false
+				block = true
+				for i, v in pairs(window.Tabs) do
+					if v ~= tab then
+						v.TabButton.TextColor3 = Color3.fromRGB(230, 230, 230)
+						v.TabButton.Name = "Tab"
+						v.Left.Visible = false
+						v.Right.Visible = false
+					end
+				end
+				tab.TabButton.TextColor3 = window.theme.accentcolor
+				tab.TabButton.Name = "SelectedTab"
+				tab.Right.Visible = true
+				tab.Left.Visible = true
+				window.Line:TweenSizeAndPosition(UDim2.fromOffset(size.X + 15, 1), UDim2.new(0, (tab.TabButton.AbsolutePosition.X - window.Frame.AbsolutePosition.X), 0, 0) + (window.BlackLine.Position - UDim2.fromOffset(0, 1)), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.15)
+				wait(0.2)
+				block = false
+			end
+			if #window.Tabs == 0 then
+				tab:SelectTab()
+			end
+			tab.TabButton.MouseButton1Down:Connect(function()
+				tab:SelectTab()
+			end)
+			tab.SectorsLeft = { }
+			tab.SectorsRight = { }
+			function tab:CreateSector(name, side)
+				local sector = { }
+				sector.name = name or ""
+				sector.side = side:lower() or "left"
+				sector.Main = Instance.new("Frame", sector.side == "left" and tab.Left or tab.Right)
+				sector.Main.Name = sector.name:gsub(" ", "") .. "Sector"
+				sector.Main.BorderSizePixel = 0
+				sector.Main.ZIndex = 4
+				sector.Main.Size = UDim2.fromOffset(window.size.X.Offset / 2 - 17, 20)
+				sector.Main.BackgroundColor3 = window.theme.sectorcolor
+                --sector.Main.Position = sector.side == "left" and UDim2.new(0, 11, 0, 12) or UDim2.new(0, window.size.X.Offset - sector.Main.AbsoluteSize.X - 11, 0, 12)
+				updateevent.Event:Connect(function(theme)
+					sector.Main.BackgroundColor3 = theme.sectorcolor
+				end)
+				sector.Line = Instance.new("Frame", sector.Main)
+				sector.Line.Name = "line"
+				sector.Line.ZIndex = 4
+				sector.Line.Size = UDim2.fromOffset(sector.Main.Size.X.Offset + 4, 1)
+				sector.Line.BorderSizePixel = 0
+				sector.Line.Position = UDim2.fromOffset(-2, -2)
+				sector.Line.BackgroundColor3 = window.theme.accentcolor
+				updateevent.Event:Connect(function(theme)
+					sector.Line.BackgroundColor3 = theme.accentcolor
+				end)
+				sector.BlackOutline = Instance.new("Frame", sector.Main)
+				sector.BlackOutline.Name = "outline"
+				sector.BlackOutline.ZIndex = 3
+				sector.BlackOutline.Size = sector.Main.Size + UDim2.fromOffset(2, 2)
+				sector.BlackOutline.BorderSizePixel = 0
+				sector.BlackOutline.BackgroundColor3 = window.theme.outlinecolor2
+				sector.BlackOutline.Position = UDim2.fromOffset(-1, -1)
+				sector.Main:GetPropertyChangedSignal("Size"):Connect(function()
+					sector.BlackOutline.Size = sector.Main.Size + UDim2.fromOffset(2, 2)
+				end)
+				updateevent.Event:Connect(function(theme)
+					sector.BlackOutline.BackgroundColor3 = theme.outlinecolor2
+				end)
+				sector.Outline = Instance.new("Frame", sector.Main)
+				sector.Outline.Name = "outline"
+				sector.Outline.ZIndex = 2
+				sector.Outline.Size = sector.Main.Size + UDim2.fromOffset(4, 4)
+				sector.Outline.BorderSizePixel = 0
+				sector.Outline.BackgroundColor3 = window.theme.outlinecolor
+				sector.Outline.Position = UDim2.fromOffset(-2, -2)
+				sector.Main:GetPropertyChangedSignal("Size"):Connect(function()
+					sector.Outline.Size = sector.Main.Size + UDim2.fromOffset(4, 4)
+				end)
+				updateevent.Event:Connect(function(theme)
+					sector.Outline.BackgroundColor3 = theme.outlinecolor
+				end)
+				sector.BlackOutline2 = Instance.new("Frame", sector.Main)
+				sector.BlackOutline2.Name = "outline"
+				sector.BlackOutline2.ZIndex = 1
+				sector.BlackOutline2.Size = sector.Main.Size + UDim2.fromOffset(6, 6)
+				sector.BlackOutline2.BorderSizePixel = 0
+				sector.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+				sector.BlackOutline2.Position = UDim2.fromOffset(-3, -3)
+				sector.Main:GetPropertyChangedSignal("Size"):Connect(function()
+					sector.BlackOutline2.Size = sector.Main.Size + UDim2.fromOffset(6, 6)
+				end)
+				updateevent.Event:Connect(function(theme)
+					sector.BlackOutline2.BackgroundColor3 = theme.outlinecolor2
+				end)
+				local size = textservice:GetTextSize(sector.name, 15, window.theme.font, Vector2.new(2000, 2000))
+				sector.Label = Instance.new("TextLabel", sector.Main)
+				sector.Label.AnchorPoint = Vector2.new(0, 0.5)
+				sector.Label.Position = UDim2.fromOffset(12, -1)
+				sector.Label.Size = UDim2.fromOffset(math.clamp(textservice:GetTextSize(sector.name, 15, window.theme.font, Vector2.new(200, 300)).X + 13, 0, sector.Main.Size.X.Offset), size.Y)
+				sector.Label.BackgroundTransparency = 1
+				sector.Label.BorderSizePixel = 0
+				sector.Label.ZIndex = 6
+				sector.Label.Text = sector.name
+				sector.Label.TextColor3 = Color3.new(1, 1, 2552 / 255)
+				sector.Label.TextStrokeTransparency = 1
+				sector.Label.Font = window.theme.font
+				sector.Label.TextSize = 15
+				updateevent.Event:Connect(function(theme)
+					local size = textservice:GetTextSize(sector.name, 15, theme.font, Vector2.new(2000, 2000))
+					sector.Label.Size = UDim2.fromOffset(math.clamp(textservice:GetTextSize(sector.name, 15, theme.font, Vector2.new(200, 300)).X + 13, 0, sector.Main.Size.X.Offset), size.Y)
+					sector.Label.Font = theme.font
+				end)
+				sector.LabelBackFrame = Instance.new("Frame", sector.Main)
+				sector.LabelBackFrame.Name = "labelframe"
+				sector.LabelBackFrame.ZIndex = 5
+				sector.LabelBackFrame.Size = UDim2.fromOffset(sector.Label.Size.X.Offset, 10)
+				sector.LabelBackFrame.BorderSizePixel = 0
+				sector.LabelBackFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+				sector.LabelBackFrame.Position = UDim2.fromOffset(sector.Label.Position.X.Offset, sector.BlackOutline2.Position.Y.Offset)
+				sector.Items = Instance.new("Frame", sector.Main)
+				sector.Items.Name = "items"
+				sector.Items.ZIndex = 2
+				sector.Items.BackgroundTransparency = 1
+				sector.Items.Size = UDim2.fromOffset(170, 140)
+				sector.Items.AutomaticSize = Enum.AutomaticSize.Y
+				sector.Items.BorderSizePixel = 0
+				sector.ListLayout = Instance.new("UIListLayout", sector.Items)
+				sector.ListLayout.FillDirection = Enum.FillDirection.Vertical
+				sector.ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+				sector.ListLayout.Padding = UDim.new(0, 12)
+				sector.ListPadding = Instance.new("UIPadding", sector.Items)
+				sector.ListPadding.PaddingTop = UDim.new(0, 15)
+				sector.ListPadding.PaddingLeft = UDim.new(0, 6)
+				sector.ListPadding.PaddingRight = UDim.new(0, 6)
+				table.insert(sector.side:lower() == "left" and tab.SectorsLeft or tab.SectorsRight, sector)
+				function sector:FixSize()
+					sector.Main.Size = UDim2.fromOffset(window.size.X.Offset / 2 - 17, sector.ListLayout.AbsoluteContentSize.Y + 22)
+					local sizeleft, sizeright = 0, 0
+					for i, v in pairs(tab.SectorsLeft) do
+						sizeleft = sizeleft + v.Main.AbsoluteSize.Y
+					end
+					for i, v in pairs(tab.SectorsRight) do
+						sizeright = sizeright + v.Main.AbsoluteSize.Y
+					end
+					tab.Left.CanvasSize = UDim2.fromOffset(tab.Left.AbsoluteSize.X, sizeleft + ((#tab.SectorsLeft - 1) * tab.LeftListPadding.PaddingTop.Offset) + 20)
+					tab.Right.CanvasSize = UDim2.fromOffset(tab.Right.AbsoluteSize.X, sizeright + ((#tab.SectorsRight - 1) * tab.RightListPadding.PaddingTop.Offset) + 20)
+				end
+				function sector:AddButton(text, callback)
+					local button = { }
+					button.text = text or ""
+					button.callback = callback or function()
+					end
+					button.Main = Instance.new("TextButton", sector.Items)
+					button.Main.BorderSizePixel = 0
+					button.Main.Text = ""
+					button.Main.AutoButtonColor = false
+					button.Main.Name = "button"
+					button.Main.ZIndex = 5
+					button.Main.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 14)
+					button.Main.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					button.Gradient = Instance.new("UIGradient", button.Main)
+					button.Gradient.Rotation = 90
+					button.Gradient.Color = ColorSequence.new({
+						ColorSequenceKeypoint.new(0.00, window.theme.buttoncolor),
+						ColorSequenceKeypoint.new(1.00, window.theme.buttoncolor2)
+					})
+					updateevent.Event:Connect(function(theme)
+						button.Gradient.Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0.00, theme.buttoncolor),
+							ColorSequenceKeypoint.new(1.00, theme.buttoncolor2)
+						})
+					end)
+					button.BlackOutline2 = Instance.new("Frame", button.Main)
+					button.BlackOutline2.Name = "blackline"
+					button.BlackOutline2.ZIndex = 4
+					button.BlackOutline2.Size = button.Main.Size + UDim2.fromOffset(6, 6)
+					button.BlackOutline2.BorderSizePixel = 0
+					button.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+					button.BlackOutline2.Position = UDim2.fromOffset(-3, -3)
+					updateevent.Event:Connect(function(theme)
+						button.BlackOutline2.BackgroundColor3 = theme.outlinecolor2
+					end)
+					button.Outline = Instance.new("Frame", button.Main)
+					button.Outline.Name = "blackline"
+					button.Outline.ZIndex = 4
+					button.Outline.Size = button.Main.Size + UDim2.fromOffset(4, 4)
+					button.Outline.BorderSizePixel = 0
+					button.Outline.BackgroundColor3 = window.theme.outlinecolor
+					button.Outline.Position = UDim2.fromOffset(-2, -2)
+					updateevent.Event:Connect(function(theme)
+						button.Outline.BackgroundColor3 = theme.outlinecolor
+					end)
+					button.BlackOutline = Instance.new("Frame", button.Main)
+					button.BlackOutline.Name = "blackline"
+					button.BlackOutline.ZIndex = 4
+					button.BlackOutline.Size = button.Main.Size + UDim2.fromOffset(2, 2)
+					button.BlackOutline.BorderSizePixel = 0
+					button.BlackOutline.BackgroundColor3 = window.theme.outlinecolor2
+					button.BlackOutline.Position = UDim2.fromOffset(-1, -1)
+					updateevent.Event:Connect(function(theme)
+						button.BlackOutline.BackgroundColor3 = theme.outlinecolor2
+					end)
+					button.Label = Instance.new("TextLabel", button.Main)
+					button.Label.Name = "Label"
+					button.Label.BackgroundTransparency = 1
+					button.Label.Position = UDim2.new(0, -1, 0, 0)
+					button.Label.ZIndex = 5
+					button.Label.Size = button.Main.Size
+					button.Label.Font = window.theme.font
+					button.Label.Text = button.text
+					button.Label.TextColor3 = window.theme.itemscolor2
+					button.Label.TextSize = 15
+					button.Label.TextStrokeTransparency = 1
+					button.Label.TextXAlignment = Enum.TextXAlignment.Center
+					button.Main.MouseButton1Down:Connect(button.callback)
+					updateevent.Event:Connect(function(theme)
+						button.Label.Font = theme.font
+						button.Label.TextColor3 = theme.itemscolor
+					end)
+					button.BlackOutline2.MouseEnter:Connect(function()
+						button.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
+					end)
+					button.BlackOutline2.MouseLeave:Connect(function()
+						button.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+					end)
+					sector:FixSize()
+					return button
+				end
+				function sector:AddLabel(text)
+					local label = { }
+					label.Main = Instance.new("TextLabel", sector.Items)
+					label.Main.Name = "Label"
+					label.Main.BackgroundTransparency = 1
+					label.Main.Position = UDim2.new(0, -1, 0, 0)
+					label.Main.ZIndex = 4
+					label.Main.AutomaticSize = Enum.AutomaticSize.XY
+					label.Main.Font = window.theme.font
+					label.Main.Text = text
+					label.Main.TextColor3 = window.theme.itemscolor
+					label.Main.TextSize = 15
+					label.Main.TextStrokeTransparency = 1
+					label.Main.TextXAlignment = Enum.TextXAlignment.Left
+					updateevent.Event:Connect(function(theme)
+						label.Main.Font = theme.font
+						label.Main.TextColor3 = theme.itemscolor
+					end)
+					function label:Set(value)
+						label.Main.Text = value
+					end
+					sector:FixSize()
+					return label
+				end
+				function sector:AddToggle(text, default, callback, flag)
+					local toggle = { }
+					toggle.text = text or ""
+					toggle.default = default or false
+					toggle.callback = callback or function(value)
+					end
+					toggle.flag = flag or text or ""
+					toggle.value = toggle.default
+					toggle.Main = Instance.new("TextButton", sector.Items)
+					toggle.Main.Name = "toggle"
+					toggle.Main.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					toggle.Main.BorderColor3 = window.theme.outlinecolor
+					toggle.Main.BorderSizePixel = 0
+					toggle.Main.Size = UDim2.fromOffset(8, 8)
+					toggle.Main.AutoButtonColor = false
+					toggle.Main.ZIndex = 5
+					toggle.Main.Font = Enum.Font.SourceSans
+					toggle.Main.Text = ""
+					toggle.Main.TextColor3 = Color3.fromRGB(0, 0, 0)
+					toggle.Main.TextSize = 15
+					updateevent.Event:Connect(function(theme)
+						toggle.Main.BorderColor3 = theme.outlinecolor
+					end)
+					toggle.BlackOutline2 = Instance.new("Frame", toggle.Main)
+					toggle.BlackOutline2.Name = "blackline"
+					toggle.BlackOutline2.ZIndex = 4
+					toggle.BlackOutline2.Size = toggle.Main.Size + UDim2.fromOffset(6, 6)
+					toggle.BlackOutline2.BorderSizePixel = 0
+					toggle.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+					toggle.BlackOutline2.Position = UDim2.fromOffset(-3, -3)
+					updateevent.Event:Connect(function(theme)
+						toggle.BlackOutline2.BackgroundColor3 = theme.outlinecolor2
+					end)
+					toggle.Outline = Instance.new("Frame", toggle.Main)
+					toggle.Outline.Name = "blackline"
+					toggle.Outline.ZIndex = 4
+					toggle.Outline.Size = toggle.Main.Size + UDim2.fromOffset(4, 4)
+					toggle.Outline.BorderSizePixel = 0
+					toggle.Outline.BackgroundColor3 = window.theme.outlinecolor
+					toggle.Outline.Position = UDim2.fromOffset(-2, -2)
+					updateevent.Event:Connect(function(theme)
+						toggle.Outline.BackgroundColor3 = theme.outlinecolor
+					end)
+					toggle.BlackOutline = Instance.new("Frame", toggle.Main)
+					toggle.BlackOutline.Name = "blackline"
+					toggle.BlackOutline.ZIndex = 4
+					toggle.BlackOutline.Size = toggle.Main.Size + UDim2.fromOffset(2, 2)
+					toggle.BlackOutline.BorderSizePixel = 0
+					toggle.BlackOutline.BackgroundColor3 = window.theme.outlinecolor2
+					toggle.BlackOutline.Position = UDim2.fromOffset(-1, -1)
+					updateevent.Event:Connect(function(theme)
+						toggle.BlackOutline.BackgroundColor3 = theme.outlinecolor2
+					end)
+					toggle.Gradient = Instance.new("UIGradient", toggle.Main)
+					toggle.Gradient.Rotation = (22.5 * 13)
+					toggle.Gradient.Color = ColorSequence.new({
+						ColorSequenceKeypoint.new(0.00, Color3.fromRGB(30, 30, 30)),
+						ColorSequenceKeypoint.new(1.00, Color3.fromRGB(45, 45, 45))
+					})
+					toggle.Label = Instance.new("TextButton", toggle.Main)
+					toggle.Label.Name = "Label"
+					toggle.Label.AutoButtonColor = false
+					toggle.Label.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					toggle.Label.BackgroundTransparency = 1
+					toggle.Label.Position = UDim2.fromOffset(toggle.Main.AbsoluteSize.X + 10, -2)
+					toggle.Label.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 71, toggle.BlackOutline.Size.Y.Offset)
+					toggle.Label.Font = window.theme.font
+					toggle.Label.ZIndex = 5
+					toggle.Label.Text = toggle.text
+					toggle.Label.TextColor3 = window.theme.itemscolor
+					toggle.Label.TextSize = 15
+					toggle.Label.TextStrokeTransparency = 1
+					toggle.Label.TextXAlignment = Enum.TextXAlignment.Left
+					updateevent.Event:Connect(function(theme)
+						toggle.Label.Font = theme.font
+						toggle.Label.TextColor3 = toggle.value and window.theme.itemscolor2 or theme.itemscolor
+					end)
+					toggle.CheckedFrame = Instance.new("Frame", toggle.Main)
+					toggle.CheckedFrame.ZIndex = 5
+					toggle.CheckedFrame.BorderSizePixel = 0
+					toggle.CheckedFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- Color3.fromRGB(204, 0, 102)
+					toggle.CheckedFrame.Size = toggle.Main.Size
+					toggle.Gradient2 = Instance.new("UIGradient", toggle.CheckedFrame)
+					toggle.Gradient2.Rotation = (22.5 * 13)
+					toggle.Gradient2.Color = ColorSequence.new({
+						ColorSequenceKeypoint.new(0.00, window.theme.accentcolor2),
+						ColorSequenceKeypoint.new(1.00, window.theme.accentcolor)
+					})
+					updateevent.Event:Connect(function(theme)
+						toggle.Gradient2.Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0.00, theme.accentcolor2),
+							ColorSequenceKeypoint.new(1.00, theme.accentcolor)
+						})
+					end)
+					toggle.Items = Instance.new("Frame", toggle.Main)
+					toggle.Items.Name = "\n"
+					toggle.Items.ZIndex = 4
+					toggle.Items.Size = UDim2.fromOffset(60, toggle.BlackOutline.AbsoluteSize.Y)
+					toggle.Items.BorderSizePixel = 0
+					toggle.Items.BackgroundTransparency = 1
+					toggle.Items.BackgroundColor3 = Color3.new(0, 0, 0)
+					toggle.Items.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 71, 0)
+					toggle.ListLayout = Instance.new("UIListLayout", toggle.Items)
+					toggle.ListLayout.FillDirection = Enum.FillDirection.Horizontal
+					toggle.ListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+					toggle.ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+					toggle.ListLayout.Padding = UDim.new(0.04, 6)
+					if toggle.flag and toggle.flag ~= "" then
+						library.flags[toggle.flag] = toggle.default or false
+					end
+					function toggle:Set(value)
+						if value then
+							toggle.Label.TextColor3 = window.theme.itemscolor2
+						else
+							toggle.Label.TextColor3 = window.theme.itemscolor
+						end
+						toggle.value = value
+						toggle.CheckedFrame.Visible = value
+						if toggle.flag and toggle.flag ~= "" then
+							library.flags[toggle.flag] = toggle.value
+						end
+						pcall(toggle.callback, value)
+					end
+					function toggle:Get()
+						return toggle.value
+					end
+					toggle:Set(toggle.default)
+					function toggle:AddKeybind(default, flag)
+						local keybind = { }
+						keybind.default = default or "None"
+						keybind.value = keybind.default
+						keybind.flag = flag or ( (toggle.text or "") .. tostring(#toggle.Items:GetChildren()))
+						local shorter_keycodes = {
+							["LeftShift"] = "LSHIFT",
+							["RightShift"] = "RSHIFT",
+							["LeftControl"] = "LCTRL",
+							["RightControl"] = "RCTRL",
+							["LeftAlt"] = "LALT",
+							["RightAlt"] = "RALT"
+						}
+						local text = keybind.default == "None" and "[None]" or "[" .. (shorter_keycodes[keybind.default.Name] or keybind.default.Name) .. "]"
+						local size = textservice:GetTextSize(text, 15, window.theme.font, Vector2.new(2000, 2000))
+						keybind.Main = Instance.new("TextButton", toggle.Items)
+						keybind.Main.Name = "keybind"
+						keybind.Main.BackgroundTransparency = 1
+						keybind.Main.BorderSizePixel = 0
+						keybind.Main.ZIndex = 5
+						keybind.Main.Size = UDim2.fromOffset(size.X + 2, size.Y - 7)
+						keybind.Main.Text = text
+						keybind.Main.Font = window.theme.font
+						keybind.Main.TextColor3 = Color3.fromRGB(136, 136, 136)
+						keybind.Main.TextSize = 15
+						keybind.Main.TextXAlignment = Enum.TextXAlignment.Right
+						keybind.Main.MouseButton1Down:Connect(function()
+							keybind.Main.Text = "[...]"
+							keybind.Main.TextColor3 = window.theme.accentcolor
+						end)
+						updateevent.Event:Connect(function(theme)
+							keybind.Main.Font = theme.font
+							if keybind.Main.Text == "[...]" then
+								keybind.Main.TextColor3 = theme.accentcolor
+							else
+								keybind.Main.TextColor3 = Color3.fromRGB(136, 136, 136)
+							end
+						end)
+						if keybind.flag and keybind.flag ~= "" then
+							library.flags[keybind.flag] = keybind.default
+						end
+						function keybind:Set(key)
+							if key == "None" then
+								keybind.Main.Text = "[" .. key .. "]"
+								keybind.value = key
+								if keybind.flag and keybind.flag ~= "" then
+									library.flags[keybind.flag] = key
+								end
+							end
+							keybind.Main.Text = "[" .. (shorter_keycodes[key.Name] or key.Name) .. "]"
+							keybind.value = key
+							if keybind.flag and keybind.flag ~= "" then
+								library.flags[keybind.flag] = keybind.value
+							end
+						end
+						function keybind:Get()
+							return keybind.value
+						end
+						uis.InputBegan:Connect(function(input, gameProcessed)
+							if not gameProcessed then
+								if keybind.Main.Text == "[...]" then
+									keybind.Main.TextColor3 = Color3.fromRGB(136, 136, 136)
+									if input.UserInputType == Enum.UserInputType.Keyboard then
+										keybind:Set(input.KeyCode)
+									else
+										keybind:Set("None")
+									end
+								else
+									if keybind.value ~= "None" and input.KeyCode == keybind.value then
+										toggle:Set(not toggle.CheckedFrame.Visible)
+									end
+								end
+							end
+						end)
+						table.insert(library.items, keybind)
+						return keybind
+					end
+					function toggle:AddDropdown(items, default, multichoice, callback, flag)
+						local dropdown = { }
+						dropdown.defaultitems = items or { }
+						dropdown.default = default
+						dropdown.callback = callback or function()
+						end
+						dropdown.multichoice = multichoice or false
+						dropdown.values = { }
+						dropdown.flag = flag or ( (toggle.text or "") .. tostring(#(sector.Items:GetChildren())) .. "a")
+						dropdown.Main = Instance.new("TextButton", sector.Items)
+						dropdown.Main.Name = "dropdown"
+						dropdown.Main.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+						dropdown.Main.BorderSizePixel = 0
+						dropdown.Main.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 16)
+						dropdown.Main.Position = UDim2.fromOffset(0, 0)
+						dropdown.Main.ZIndex = 5
+						dropdown.Main.AutoButtonColor = false
+						dropdown.Main.Font = window.theme.font
+						dropdown.Main.Text = ""
+						dropdown.Main.TextColor3 = Color3.fromRGB(255, 255, 255)
+						dropdown.Main.TextSize = 15
+						dropdown.Main.TextXAlignment = Enum.TextXAlignment.Left
+						updateevent.Event:Connect(function(theme)
+							dropdown.Main.Font = theme.font
+						end)
+						dropdown.Gradient = Instance.new("UIGradient", dropdown.Main)
+						dropdown.Gradient.Rotation = 90
+						dropdown.Gradient.Color = ColorSequence.new{
+							ColorSequenceKeypoint.new(0.00, Color3.fromRGB(49, 49, 49)),
+							ColorSequenceKeypoint.new(1.00, Color3.fromRGB(39, 39, 39))
+						}
+						dropdown.SelectedLabel = Instance.new("TextLabel", dropdown.Main)
+						dropdown.SelectedLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+						dropdown.SelectedLabel.BackgroundTransparency = 1
+						dropdown.SelectedLabel.Position = UDim2.fromOffset(5, 2)
+						dropdown.SelectedLabel.Size = UDim2.fromOffset(130, 13)
+						dropdown.SelectedLabel.Font = window.theme.font
+						dropdown.SelectedLabel.Text = toggle.text
+						dropdown.SelectedLabel.ZIndex = 5
+						dropdown.SelectedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+						dropdown.SelectedLabel.TextSize = 15
+						dropdown.SelectedLabel.TextStrokeTransparency = 1
+						dropdown.SelectedLabel.TextXAlignment = Enum.TextXAlignment.Left
+						updateevent.Event:Connect(function(theme)
+							dropdown.SelectedLabel.Font = theme.font
+						end)
+						dropdown.Nav = Instance.new("ImageButton", dropdown.Main)
+						dropdown.Nav.Name = "navigation"
+						dropdown.Nav.BackgroundTransparency = 1
+						dropdown.Nav.LayoutOrder = 10
+						dropdown.Nav.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 26, 5)
+						dropdown.Nav.Rotation = 90
+						dropdown.Nav.ZIndex = 5
+						dropdown.Nav.Size = UDim2.fromOffset(8, 8)
+						dropdown.Nav.Image = "rbxassetid://4918373417"
+						dropdown.Nav.ImageColor3 = Color3.fromRGB(210, 210, 210)
+						dropdown.BlackOutline2 = Instance.new("Frame", dropdown.Main)
+						dropdown.BlackOutline2.Name = "blackline"
+						dropdown.BlackOutline2.ZIndex = 4
+						dropdown.BlackOutline2.Size = dropdown.Main.Size + UDim2.fromOffset(6, 6)
+						dropdown.BlackOutline2.BorderSizePixel = 0
+						dropdown.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+						dropdown.BlackOutline2.Position = UDim2.fromOffset(-3, -3)
+						updateevent.Event:Connect(function(theme)
+							dropdown.BlackOutline2.BackgroundColor3 = theme.outlinecolor2
+						end)
+						dropdown.Outline = Instance.new("Frame", dropdown.Main)
+						dropdown.Outline.Name = "blackline"
+						dropdown.Outline.ZIndex = 4
+						dropdown.Outline.Size = dropdown.Main.Size + UDim2.fromOffset(4, 4)
+						dropdown.Outline.BorderSizePixel = 0
+						dropdown.Outline.BackgroundColor3 = window.theme.outlinecolor
+						dropdown.Outline.Position = UDim2.fromOffset(-2, -2)
+						updateevent.Event:Connect(function(theme)
+							dropdown.Outline.BackgroundColor3 = theme.outlinecolor
+						end)
+						dropdown.BlackOutline = Instance.new("Frame", dropdown.Main)
+						dropdown.BlackOutline.Name = "blackline444"
+						dropdown.BlackOutline.ZIndex = 4
+						dropdown.BlackOutline.Size = dropdown.Main.Size + UDim2.fromOffset(2, 2)
+						dropdown.BlackOutline.BorderSizePixel = 0
+						dropdown.BlackOutline.BackgroundColor3 = window.theme.outlinecolor2
+						dropdown.BlackOutline.Position = UDim2.fromOffset(-1, -1)
+						updateevent.Event:Connect(function(theme)
+							dropdown.BlackOutline.BackgroundColor3 = theme.outlinecolor2
+						end)
+						dropdown.ItemsFrame = Instance.new("ScrollingFrame", dropdown.Main)
+						dropdown.ItemsFrame.Name = "itemsframe"
+						dropdown.ItemsFrame.BorderSizePixel = 0
+						dropdown.ItemsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+						dropdown.ItemsFrame.Position = UDim2.fromOffset(0, dropdown.Main.Size.Y.Offset + 8)
+						dropdown.ItemsFrame.ScrollBarThickness = 2
+						dropdown.ItemsFrame.ZIndex = 8
+						dropdown.ItemsFrame.ScrollingDirection = "Y"
+						dropdown.ItemsFrame.Visible = false
+						dropdown.ItemsFrame.Size = UDim2.new(0, 0, 0, 0)
+						dropdown.ItemsFrame.CanvasSize = UDim2.fromOffset(dropdown.Main.AbsoluteSize.X, 0)
+						dropdown.ListLayout = Instance.new("UIListLayout", dropdown.ItemsFrame)
+						dropdown.ListLayout.FillDirection = Enum.FillDirection.Vertical
+						dropdown.ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+						dropdown.ListPadding = Instance.new("UIPadding", dropdown.ItemsFrame)
+						dropdown.ListPadding.PaddingTop = UDim.new(0, 2)
+						dropdown.ListPadding.PaddingBottom = UDim.new(0, 2)
+						dropdown.ListPadding.PaddingLeft = UDim.new(0, 2)
+						dropdown.ListPadding.PaddingRight = UDim.new(0, 2)
+						dropdown.BlackOutline2Items = Instance.new("Frame", dropdown.Main)
+						dropdown.BlackOutline2Items.Name = "blackline3"
+						dropdown.BlackOutline2Items.ZIndex = 7
+						dropdown.BlackOutline2Items.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(6, 6)
+						dropdown.BlackOutline2Items.BorderSizePixel = 0
+						dropdown.BlackOutline2Items.BackgroundColor3 = window.theme.outlinecolor2
+						dropdown.BlackOutline2Items.Position = dropdown.ItemsFrame.Position + UDim2.fromOffset(-3, -3)
+						dropdown.BlackOutline2Items.Visible = false
+						updateevent.Event:Connect(function(theme)
+							dropdown.BlackOutline2Items.BackgroundColor3 = theme.outlinecolor2
+						end)
+						dropdown.OutlineItems = Instance.new("Frame", dropdown.Main)
+						dropdown.OutlineItems.Name = "blackline8"
+						dropdown.OutlineItems.ZIndex = 7
+						dropdown.OutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(4, 4)
+						dropdown.OutlineItems.BorderSizePixel = 0
+						dropdown.OutlineItems.BackgroundColor3 = window.theme.outlinecolor
+						dropdown.OutlineItems.Position = dropdown.ItemsFrame.Position + UDim2.fromOffset(-2, -2)
+						dropdown.OutlineItems.Visible = false
+						updateevent.Event:Connect(function(theme)
+							dropdown.OutlineItems.BackgroundColor3 = theme.outlinecolor
+						end)
+						dropdown.BlackOutlineItems = Instance.new("Frame", dropdown.Main)
+						dropdown.BlackOutlineItems.Name = "blackline3"
+						dropdown.BlackOutlineItems.ZIndex = 7
+						dropdown.BlackOutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(-2, -2)
+						dropdown.BlackOutlineItems.BorderSizePixel = 0
+						dropdown.BlackOutlineItems.BackgroundColor3 = window.theme.outlinecolor2
+						dropdown.BlackOutlineItems.Position = dropdown.ItemsFrame.Position + UDim2.fromOffset(-1, -1)
+						dropdown.BlackOutlineItems.Visible = false
+						updateevent.Event:Connect(function(theme)
+							dropdown.BlackOutlineItems.BackgroundColor3 = theme.outlinecolor2
+						end)
+						dropdown.IgnoreBackButtons = Instance.new("TextButton", dropdown.Main)
+						dropdown.IgnoreBackButtons.BackgroundTransparency = 1
+						dropdown.IgnoreBackButtons.BorderSizePixel = 0
+						dropdown.IgnoreBackButtons.Position = UDim2.fromOffset(0, dropdown.Main.Size.Y.Offset + 8)
+						dropdown.IgnoreBackButtons.Size = UDim2.new(0, 0, 0, 0)
+						dropdown.IgnoreBackButtons.ZIndex = 7
+						dropdown.IgnoreBackButtons.Text = ""
+						dropdown.IgnoreBackButtons.Visible = false
+						dropdown.IgnoreBackButtons.AutoButtonColor = false
+						if dropdown.flag and dropdown.flag ~= "" then
+							library.flags[dropdown.flag] = dropdown.multichoice and {
+								dropdown.default or dropdown.defaultitems[1] or ""
+							} or (dropdown.default or dropdown.defaultitems[1] or "")
+						end
+						function dropdown:isSelected(item)
+							for i, v in pairs(dropdown.values) do
+								if v == item then
+									return true
+								end
+							end
+							return false
+						end
+						function dropdown:updateText(text)
+							if #text >= 27 then
+								text = text:sub(1, 25) .. ".."
+							end
+							dropdown.SelectedLabel.Text = text
+						end
+						dropdown.Changed = Instance.new("BindableEvent")
+						function dropdown:Set(value)
+							if type(value) == "table" then
+								dropdown.values = value
+								dropdown:updateText(table.concat(value, ", "))
+								pcall(dropdown.callback, value)
+							else
+								dropdown:updateText(value)
+								dropdown.values = {
+									value
+								}
+								pcall(dropdown.callback, value)
+							end
+							dropdown.Changed:Fire(value)
+							if dropdown.flag and dropdown.flag ~= "" then
+								library.flags[dropdown.flag] = dropdown.multichoice and dropdown.values or dropdown.values[1]
+							end
+						end
+						function dropdown:Get()
+							return dropdown.multichoice and dropdown.values or dropdown.values[1]
+						end
+						dropdown.items = { }
+						function dropdown:Add(v)
+							local Item = Instance.new("TextButton", dropdown.ItemsFrame)
+							Item.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+							Item.TextColor3 = Color3.fromRGB(255, 255, 255)
+							Item.BorderSizePixel = 0
+							Item.Position = UDim2.fromOffset(0, 0)
+							Item.Size = UDim2.fromOffset(dropdown.Main.Size.X.Offset - 4, 20)
+							Item.ZIndex = 9
+							Item.Text = v
+							Item.Name = v
+							Item.AutoButtonColor = false
+							Item.Font = window.theme.font
+							Item.TextSize = 15
+							Item.TextXAlignment = Enum.TextXAlignment.Left
+							Item.TextStrokeTransparency = 1
+							dropdown.ItemsFrame.CanvasSize = dropdown.ItemsFrame.CanvasSize + UDim2.fromOffset(0, Item.AbsoluteSize.Y)
+							Item.MouseButton1Down:Connect(function()
+								if dropdown.multichoice then
+									if dropdown:isSelected(v) then
+										for i2, v2 in pairs(dropdown.values) do
+											if v2 == v then
+												table.remove(dropdown.values, i2)
+											end
+										end
+										dropdown:Set(dropdown.values)
+									else
+										table.insert(dropdown.values, v)
+										dropdown:Set(dropdown.values)
+									end
+									return
+								else
+									dropdown.Nav.Rotation = 90
+									dropdown.ItemsFrame.Visible = false
+									dropdown.ItemsFrame.Active = false
+									dropdown.OutlineItems.Visible = false
+									dropdown.BlackOutlineItems.Visible = false
+									dropdown.BlackOutline2Items.Visible = false
+									dropdown.IgnoreBackButtons.Visible = false
+									dropdown.IgnoreBackButtons.Active = false
+								end
+								dropdown:Set(v)
+								return
+							end)
+							runservice.RenderStepped:Connect(function()
+								if dropdown.multichoice and dropdown:isSelected(v) or dropdown.values[1] == v then
+									Item.BackgroundColor3 = Color3.fromRGB(64, 64, 64)
+									Item.TextColor3 = window.theme.accentcolor
+									Item.Text = " " .. v
+								else
+									Item.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+									Item.TextColor3 = Color3.fromRGB(255, 255, 255)
+									Item.Text = v
+								end
+							end)
+							table.insert(dropdown.items, v)
+							dropdown.ItemsFrame.Size = UDim2.fromOffset(dropdown.Main.Size.X.Offset, math.clamp(#dropdown.items * Item.AbsoluteSize.Y, 20, 156) + 4)
+							dropdown.ItemsFrame.CanvasSize = UDim2.fromOffset(dropdown.ItemsFrame.AbsoluteSize.X, (#dropdown.items * Item.AbsoluteSize.Y) + 4)
+							dropdown.OutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(4, 4)
+							dropdown.BlackOutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(2, 2)
+							dropdown.BlackOutline2Items.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(6, 6)
+							dropdown.IgnoreBackButtons.Size = dropdown.ItemsFrame.Size
+						end
+						function dropdown:Remove(value)
+							local item = dropdown.ItemsFrame:FindFirstChild(value)
+							if item then
+								for i, v in pairs(dropdown.items) do
+									if v == value then
+										table.remove(dropdown.items, i)
+									end
+								end
+								dropdown.ItemsFrame.Size = UDim2.fromOffset(dropdown.Main.Size.X.Offset, math.clamp(#dropdown.items * item.AbsoluteSize.Y, 20, 156) + 4)
+								dropdown.ItemsFrame.CanvasSize = UDim2.fromOffset(dropdown.ItemsFrame.AbsoluteSize.X, (#dropdown.items * item.AbsoluteSize.Y) + 4)
+								dropdown.OutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(2, 2)
+								dropdown.BlackOutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(4, 4)
+								dropdown.BlackOutline2Items.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(6, 6)
+								dropdown.IgnoreBackButtons.Size = dropdown.ItemsFrame.Size
+								item:Remove()
+							end
+						end
+						function dropdown:getList()
+							return dropdown.items
+						end
+						for i, v in pairs(dropdown.defaultitems) do
+							dropdown:Add(v)
+						end
+						if dropdown.default then
+							dropdown:Set(dropdown.default)
+						end
+						local MouseButton1Down = function()
+							if dropdown.Nav.Rotation == 90 then
+								tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+									Rotation = -90
+								}):Play()
+								if dropdown.items and #dropdown.items ~= 0 then
+									dropdown.ItemsFrame.ScrollingEnabled = true
+									sector.Main.Parent.ScrollingEnabled = false
+									dropdown.ItemsFrame.Visible = true
+									dropdown.ItemsFrame.Active = true
+									dropdown.IgnoreBackButtons.Visible = true
+									dropdown.IgnoreBackButtons.Active = true
+									dropdown.OutlineItems.Visible = true
+									dropdown.BlackOutlineItems.Visible = true
+									dropdown.BlackOutline2Items.Visible = true
+								end
+							else
+								tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+									Rotation = 90
+								}):Play()
+								dropdown.ItemsFrame.ScrollingEnabled = false
+								sector.Main.Parent.ScrollingEnabled = true
+								dropdown.ItemsFrame.Visible = false
+								dropdown.ItemsFrame.Active = false
+								dropdown.IgnoreBackButtons.Visible = false
+								dropdown.IgnoreBackButtons.Active = false
+								dropdown.OutlineItems.Visible = false
+								dropdown.BlackOutlineItems.Visible = false
+								dropdown.BlackOutline2Items.Visible = false
+							end
+						end
+						dropdown.Main.MouseButton1Down:Connect(MouseButton1Down)
+						dropdown.Nav.MouseButton1Down:Connect(MouseButton1Down)
+						dropdown.BlackOutline2.MouseEnter:Connect(function()
+							dropdown.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
+						end)
+						dropdown.BlackOutline2.MouseLeave:Connect(function()
+							dropdown.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+						end)
+						sector:FixSize()
+						table.insert(library.items, dropdown)
+						return dropdown
+					end
+					function toggle:AddTextbox(default, callback, flag)
+						local textbox = { }
+						textbox.callback = callback or function()
+						end
+						textbox.default = default
+						textbox.value = ""
+						textbox.flag = flag or ( (toggle.text or "") .. tostring(#(sector.Items:GetChildren())) .. "a")
+						textbox.Holder = Instance.new("Frame", sector.Items)
+						textbox.Holder.Name = "holder"
+						textbox.Holder.ZIndex = 5
+						textbox.Holder.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 14)
+						textbox.Holder.BorderSizePixel = 0
+						textbox.Holder.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+						textbox.Gradient = Instance.new("UIGradient", textbox.Holder)
+						textbox.Gradient.Rotation = 90
+						textbox.Gradient.Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0.00, Color3.fromRGB(49, 49, 49)),
+							ColorSequenceKeypoint.new(1.00, Color3.fromRGB(39, 39, 39))
+						})
+						textbox.Main = Instance.new("TextBox", textbox.Holder)
+						textbox.Main.PlaceholderText = ""
+						textbox.Main.Text = ""
+						textbox.Main.BackgroundTransparency = 1
+						textbox.Main.Font = window.theme.font
+						textbox.Main.Name = "textbox"
+						textbox.Main.MultiLine = false
+						textbox.Main.ClearTextOnFocus = false
+						textbox.Main.ZIndex = 5
+						textbox.Main.TextScaled = true
+						textbox.Main.Size = textbox.Holder.Size
+						textbox.Main.TextSize = 15
+						textbox.Main.TextColor3 = Color3.fromRGB(255, 255, 255)
+						textbox.Main.BorderSizePixel = 0
+						textbox.Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+						textbox.Main.TextXAlignment = Enum.TextXAlignment.Left
+						if textbox.flag and textbox.flag ~= "" then
+							library.flags[textbox.flag] = textbox.default or ""
+						end
+						function textbox:Set(text)
+							textbox.value = text
+							textbox.Main.Text = text
+							if textbox.flag and textbox.flag ~= "" then
+								library.flags[textbox.flag] = text
+							end
+							pcall(textbox.callback, text)
+						end
+						updateevent.Event:Connect(function(theme)
+							textbox.Main.Font = theme.font
+						end)
+						function textbox:Get()
+							return textbox.value
+						end
+						if textbox.default then
+							textbox:Set(textbox.default)
+						end
+						textbox.Main.FocusLost:Connect(function()
+							textbox:Set(textbox.Main.Text)
+						end)
+						textbox.BlackOutline2 = Instance.new("Frame", textbox.Main)
+						textbox.BlackOutline2.Name = "blackline"
+						textbox.BlackOutline2.ZIndex = 4
+						textbox.BlackOutline2.Size = textbox.Main.Size + UDim2.fromOffset(6, 6)
+						textbox.BlackOutline2.BorderSizePixel = 0
+						textbox.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+						textbox.BlackOutline2.Position = UDim2.fromOffset(-3, -3)
+						updateevent.Event:Connect(function(theme)
+							textbox.BlackOutline2.BackgroundColor3 = theme.outlinecolor2
+						end)
+						textbox.Outline = Instance.new("Frame", textbox.Main)
+						textbox.Outline.Name = "blackline"
+						textbox.Outline.ZIndex = 4
+						textbox.Outline.Size = textbox.Main.Size + UDim2.fromOffset(4, 4)
+						textbox.Outline.BorderSizePixel = 0
+						textbox.Outline.BackgroundColor3 = window.theme.outlinecolor
+						textbox.Outline.Position = UDim2.fromOffset(-2, -2)
+						updateevent.Event:Connect(function(theme)
+							textbox.Outline.BackgroundColor3 = theme.outlinecolor
+						end)
+						textbox.BlackOutline = Instance.new("Frame", textbox.Main)
+						textbox.BlackOutline.Name = "blackline"
+						textbox.BlackOutline.ZIndex = 4
+						textbox.BlackOutline.Size = textbox.Main.Size + UDim2.fromOffset(2, 2)
+						textbox.BlackOutline.BorderSizePixel = 0
+						textbox.BlackOutline.BackgroundColor3 = window.theme.outlinecolor2
+						textbox.BlackOutline.Position = UDim2.fromOffset(-1, -1)
+						updateevent.Event:Connect(function(theme)
+							textbox.BlackOutline.BackgroundColor3 = theme.outlinecolor2
+						end)
+						textbox.BlackOutline2.MouseEnter:Connect(function()
+							textbox.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
+						end)
+						textbox.BlackOutline2.MouseLeave:Connect(function()
+							textbox.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+						end)
+						sector:FixSize()
+						table.insert(library.items, textbox)
+						return textbox
+					end
+					function toggle:AddColorpicker(default, callback, flag)
+						local colorpicker = { }
+						colorpicker.callback = callback or function()
+						end
+						colorpicker.default = default or Color3.fromRGB(255, 255, 255)
+						colorpicker.value = colorpicker.default
+						colorpicker.flag = flag or ( (toggle.text or "") .. tostring(#toggle.Items:GetChildren()))
+						colorpicker.Main = Instance.new("Frame", toggle.Items)
+						colorpicker.Main.ZIndex = 6
+						colorpicker.Main.BorderSizePixel = 0
+						colorpicker.Main.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+						colorpicker.Main.Size = UDim2.fromOffset(16, 10)
+						colorpicker.Gradient = Instance.new("UIGradient", colorpicker.Main)
+						colorpicker.Gradient.Rotation = 90
+						local clr = Color3.new(math.clamp(colorpicker.value.R / 1.7, 0, 1), math.clamp(colorpicker.value.G / 1.7, 0, 1), math.clamp(colorpicker.value.B / 1.7, 0, 1))
+						colorpicker.Gradient.Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0.00, colorpicker.value),
+							ColorSequenceKeypoint.new(1.00, clr)
+						})
+						colorpicker.BlackOutline2 = Instance.new("Frame", colorpicker.Main)
+						colorpicker.BlackOutline2.Name = "blackline"
+						colorpicker.BlackOutline2.ZIndex = 4
+						colorpicker.BlackOutline2.Size = colorpicker.Main.Size + UDim2.fromOffset(6, 6)
+						colorpicker.BlackOutline2.BorderSizePixel = 0
+						colorpicker.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+						colorpicker.BlackOutline2.Position = UDim2.fromOffset(-3, -3)
+						updateevent.Event:Connect(function(theme)
+							if window.OpenedColorPickers[colorpicker.MainPicker] then
+								colorpicker.BlackOutline2.BackgroundColor3 = theme.accentcolor
+							else
+								colorpicker.BlackOutline2.BackgroundColor3 = theme.outlinecolor2
+							end
+						end)
+						colorpicker.Outline = Instance.new("Frame", colorpicker.Main)
+						colorpicker.Outline.Name = "blackline"
+						colorpicker.Outline.ZIndex = 4
+						colorpicker.Outline.Size = colorpicker.Main.Size + UDim2.fromOffset(4, 4)
+						colorpicker.Outline.BorderSizePixel = 0
+						colorpicker.Outline.BackgroundColor3 = window.theme.outlinecolor
+						colorpicker.Outline.Position = UDim2.fromOffset(-2, -2)
+						updateevent.Event:Connect(function(theme)
+							colorpicker.Outline.BackgroundColor3 = theme.outlinecolor
+						end)
+						colorpicker.BlackOutline = Instance.new("Frame", colorpicker.Main)
+						colorpicker.BlackOutline.Name = "blackline"
+						colorpicker.BlackOutline.ZIndex = 4
+						colorpicker.BlackOutline.Size = colorpicker.Main.Size + UDim2.fromOffset(2, 2)
+						colorpicker.BlackOutline.BorderSizePixel = 0
+						colorpicker.BlackOutline.BackgroundColor3 = window.theme.outlinecolor2
+						colorpicker.BlackOutline.Position = UDim2.fromOffset(-1, -1)
+						updateevent.Event:Connect(function(theme)
+							colorpicker.BlackOutline.BackgroundColor3 = theme.outlinecolor2
+						end)
+						colorpicker.BlackOutline2.MouseEnter:Connect(function()
+							colorpicker.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
+						end)
+						colorpicker.BlackOutline2.MouseLeave:Connect(function()
+							if not window.OpenedColorPickers[colorpicker.MainPicker] then
+								colorpicker.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+							end
+						end)
+						colorpicker.MainPicker = Instance.new("TextButton", colorpicker.Main)
+						colorpicker.MainPicker.Name = "picker"
+						colorpicker.MainPicker.ZIndex = 100
+						colorpicker.MainPicker.Visible = false
+						colorpicker.MainPicker.AutoButtonColor = false
+						colorpicker.MainPicker.Text = ""
+						window.OpenedColorPickers[colorpicker.MainPicker] = false
+						colorpicker.MainPicker.Size = UDim2.fromOffset(180, 196)
+						colorpicker.MainPicker.BorderSizePixel = 0
+						colorpicker.MainPicker.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+						colorpicker.MainPicker.Rotation = 0.000000000000001
+						colorpicker.MainPicker.Position = UDim2.fromOffset(-colorpicker.MainPicker.AbsoluteSize.X + colorpicker.Main.AbsoluteSize.X, 17)
+						colorpicker.BlackOutline3 = Instance.new("Frame", colorpicker.MainPicker)
+						colorpicker.BlackOutline3.Name = "blackline"
+						colorpicker.BlackOutline3.ZIndex = 98
+						colorpicker.BlackOutline3.Size = colorpicker.MainPicker.Size + UDim2.fromOffset(6, 6)
+						colorpicker.BlackOutline3.BorderSizePixel = 0
+						colorpicker.BlackOutline3.BackgroundColor3 = window.theme.outlinecolor2
+						colorpicker.BlackOutline3.Position = UDim2.fromOffset(-3, -3)
+						updateevent.Event:Connect(function(theme)
+							colorpicker.BlackOutline3.BackgroundColor3 = theme.outlinecolor2
+						end)
+						colorpicker.Outline2 = Instance.new("Frame", colorpicker.MainPicker)
+						colorpicker.Outline2.Name = "blackline"
+						colorpicker.Outline2.ZIndex = 98
+						colorpicker.Outline2.Size = colorpicker.MainPicker.Size + UDim2.fromOffset(4, 4)
+						colorpicker.Outline2.BorderSizePixel = 0
+						colorpicker.Outline2.BackgroundColor3 = window.theme.outlinecolor
+						colorpicker.Outline2.Position = UDim2.fromOffset(-2, -2)
+						updateevent.Event:Connect(function(theme)
+							colorpicker.Outline2.BackgroundColor3 = theme.outlinecolor
+						end)
+						colorpicker.BlackOutline3 = Instance.new("Frame", colorpicker.MainPicker)
+						colorpicker.BlackOutline3.Name = "blackline"
+						colorpicker.BlackOutline3.ZIndex = 98
+						colorpicker.BlackOutline3.Size = colorpicker.MainPicker.Size + UDim2.fromOffset(2, 2)
+						colorpicker.BlackOutline3.BorderSizePixel = 0
+						colorpicker.BlackOutline3.BackgroundColor3 = window.theme.outlinecolor2
+						colorpicker.BlackOutline3.Position = UDim2.fromOffset(-1, -1)
+						updateevent.Event:Connect(function(theme)
+							colorpicker.BlackOutline3.BackgroundColor3 = theme.outlinecolor2
+						end)
+						colorpicker.hue = Instance.new("ImageLabel", colorpicker.MainPicker)
+						colorpicker.hue.ZIndex = 101
+						colorpicker.hue.Position = UDim2.new(0, 3, 0, 3)
+						colorpicker.hue.Size = UDim2.new(0, 172, 0, 172)
+						colorpicker.hue.Image = "rbxassetid://4155801252"
+						colorpicker.hue.ScaleType = Enum.ScaleType.Stretch
+						colorpicker.hue.BackgroundColor3 = Color3.new(1, 0, 0)
+						colorpicker.hue.BorderColor3 = window.theme.outlinecolor2
+						updateevent.Event:Connect(function(theme)
+							colorpicker.hue.BorderColor3 = theme.outlinecolor2
+						end)
+						colorpicker.hueselectorpointer = Instance.new("ImageLabel", colorpicker.MainPicker)
+						colorpicker.hueselectorpointer.ZIndex = 101
+						colorpicker.hueselectorpointer.BackgroundTransparency = 1
+						colorpicker.hueselectorpointer.BorderSizePixel = 0
+						colorpicker.hueselectorpointer.Position = UDim2.new(0, 0, 0, 0)
+						colorpicker.hueselectorpointer.Size = UDim2.new(0, 7, 0, 7)
+						colorpicker.hueselectorpointer.Image = "rbxassetid://6885856475"
+						colorpicker.selector = Instance.new("TextLabel", colorpicker.MainPicker)
+						colorpicker.selector.ZIndex = 100
+						colorpicker.selector.Position = UDim2.new(0, 3, 0, 181)
+						colorpicker.selector.Size = UDim2.new(0, 173, 0, 10)
+						colorpicker.selector.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+						colorpicker.selector.BorderColor3 = window.theme.outlinecolor2
+						colorpicker.selector.Text = ""
+						updateevent.Event:Connect(function(theme)
+							colorpicker.selector.BorderColor3 = theme.outlinecolor2
+						end)
+						colorpicker.gradient = Instance.new("UIGradient", colorpicker.selector)
+						colorpicker.gradient.Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0, Color3.new(1, 0, 0)),
+							ColorSequenceKeypoint.new(0.17, Color3.new(1, 0, 1)),
+							ColorSequenceKeypoint.new(0.33, Color3.new(0, 0, 1)),
+							ColorSequenceKeypoint.new(0.5, Color3.new(0, 1, 1)),
+							ColorSequenceKeypoint.new(0.67, Color3.new(0, 1, 0)),
+							ColorSequenceKeypoint.new(0.83, Color3.new(1, 1, 0)),
+							ColorSequenceKeypoint.new(1, Color3.new(1, 0, 0))
+						})
+						colorpicker.pointer = Instance.new("Frame", colorpicker.selector)
+						colorpicker.pointer.ZIndex = 101
+						colorpicker.pointer.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+						colorpicker.pointer.Position = UDim2.new(0, 0, 0, 0)
+						colorpicker.pointer.Size = UDim2.new(0, 2, 0, 10)
+						colorpicker.pointer.BorderColor3 = Color3.fromRGB(255, 255, 255)
+						if colorpicker.flag and colorpicker.flag ~= "" then
+							library.flags[colorpicker.flag] = colorpicker.default
+						end
+						function colorpicker:RefreshHue()
+							local x = (mouse.X - colorpicker.hue.AbsolutePosition.X) / colorpicker.hue.AbsoluteSize.X
+							local y = (mouse.Y - colorpicker.hue.AbsolutePosition.Y) / colorpicker.hue.AbsoluteSize.Y
+							colorpicker.hueselectorpointer:TweenPosition(UDim2.new(math.clamp(x * colorpicker.hue.AbsoluteSize.X, 0.5, 0.952 * colorpicker.hue.AbsoluteSize.X) / colorpicker.hue.AbsoluteSize.X, 0, math.clamp(y * colorpicker.hue.AbsoluteSize.Y, 0.5, 0.885 * colorpicker.hue.AbsoluteSize.Y) / colorpicker.hue.AbsoluteSize.Y, 0), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.05)
+							colorpicker:Set(Color3.fromHSV(colorpicker.color, math.clamp(x * colorpicker.hue.AbsoluteSize.X, 0.5, 1 * colorpicker.hue.AbsoluteSize.X) / colorpicker.hue.AbsoluteSize.X, 1 - (math.clamp(y * colorpicker.hue.AbsoluteSize.Y, 0.5, 1 * colorpicker.hue.AbsoluteSize.Y) / colorpicker.hue.AbsoluteSize.Y)))
+						end
+						function colorpicker:RefreshSelector()
+							local pos = math.clamp((mouse.X - colorpicker.hue.AbsolutePosition.X) / colorpicker.hue.AbsoluteSize.X, 0, 1)
+							colorpicker.color = 1 - pos
+							colorpicker.pointer:TweenPosition(UDim2.new(pos, 0, 0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.05)
+							colorpicker.hue.BackgroundColor3 = Color3.fromHSV(1 - pos, 1, 1)
+							local x = (colorpicker.hueselectorpointer.AbsolutePosition.X - colorpicker.hue.AbsolutePosition.X) / colorpicker.hue.AbsoluteSize.X
+							local y = (colorpicker.hueselectorpointer.AbsolutePosition.Y - colorpicker.hue.AbsolutePosition.Y) / colorpicker.hue.AbsoluteSize.Y
+							colorpicker:Set(Color3.fromHSV(colorpicker.color, math.clamp(x * colorpicker.hue.AbsoluteSize.X, 0.5, 1 * colorpicker.hue.AbsoluteSize.X) / colorpicker.hue.AbsoluteSize.X, 1 - (math.clamp(y * colorpicker.hue.AbsoluteSize.Y, 0.5, 1 * colorpicker.hue.AbsoluteSize.Y) / colorpicker.hue.AbsoluteSize.Y)))
+						end
+						function colorpicker:Set(value)
+							local color = Color3.new(math.clamp(value.r, 0, 1), math.clamp(value.g, 0, 1), math.clamp(value.b, 0, 1))
+							colorpicker.value = color
+							if colorpicker.flag and colorpicker.flag ~= "" then
+								library.flags[colorpicker.flag] = color
+							end
+							local clr = Color3.new(math.clamp(color.R / 1.7, 0, 1), math.clamp(color.G / 1.7, 0, 1), math.clamp(color.B / 1.7, 0, 1))
+							colorpicker.Gradient.Color = ColorSequence.new({
+								ColorSequenceKeypoint.new(0.00, color),
+								ColorSequenceKeypoint.new(1.00, clr)
+							})
+							pcall(colorpicker.callback, color)
+						end
+						function colorpicker:Get(value)
+							return colorpicker.value
+						end
+						colorpicker:Set(colorpicker.default)
+						local dragging_selector = false
+						local dragging_hue = false
+						colorpicker.selector.InputBegan:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								dragging_selector = true
+								colorpicker:RefreshSelector()
+							end
+						end)
+						colorpicker.selector.InputEnded:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								dragging_selector = false
+								colorpicker:RefreshSelector()
+							end
+						end)
+						colorpicker.hue.InputBegan:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								dragging_hue = true
+								colorpicker:RefreshHue()
+							end
+						end)
+						colorpicker.hue.InputEnded:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								dragging_hue = false
+								colorpicker:RefreshHue()
+							end
+						end)
+						uis.InputChanged:Connect(function(input)
+							if dragging_selector and input.UserInputType == Enum.UserInputType.MouseMovement then
+								colorpicker:RefreshSelector()
+							end
+							if dragging_hue and input.UserInputType == Enum.UserInputType.MouseMovement then
+								colorpicker:RefreshHue()
+							end
+						end)
+						local inputBegan = function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								for i, v in pairs(window.OpenedColorPickers) do
+									if v and i ~= colorpicker.MainPicker then
+										i.Visible = false
+										window.OpenedColorPickers[i] = false
+									end
+								end
+								colorpicker.MainPicker.Visible = not colorpicker.MainPicker.Visible
+								window.OpenedColorPickers[colorpicker.MainPicker] = colorpicker.MainPicker.Visible
+								if window.OpenedColorPickers[colorpicker.MainPicker] then
+									colorpicker.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
+								else
+									colorpicker.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+								end
+							end
+						end
+						colorpicker.Main.InputBegan:Connect(inputBegan)
+						colorpicker.Outline.InputBegan:Connect(inputBegan)
+						colorpicker.BlackOutline2.InputBegan:Connect(inputBegan)
+						table.insert(library.items, colorpicker)
+						return colorpicker
+					end
+					function toggle:AddSlider(min, default, max, decimals, callback, flag)
+						local slider = { }
+						slider.text = text or ""
+						slider.callback = callback or function(value)
+						end
+						slider.min = min or 0
+						slider.max = max or 100
+						slider.decimals = decimals or 1
+						slider.default = default or slider.min
+						slider.flag = flag or ( (toggle.text or "") .. tostring(#toggle.Items:GetChildren()))
+						slider.value = slider.default
+						local dragging = false
+						slider.Main = Instance.new("TextButton", sector.Items)
+						slider.Main.Name = "slider"
+						slider.Main.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+						slider.Main.Position = UDim2.fromOffset(0, 0)
+						slider.Main.BorderSizePixel = 0
+						slider.Main.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 12)
+						slider.Main.AutoButtonColor = false
+						slider.Main.Text = ""
+						slider.Main.ZIndex = 7
+						slider.InputLabel = Instance.new("TextLabel", slider.Main)
+						slider.InputLabel.BackgroundTransparency = 1
+						slider.InputLabel.Size = slider.Main.Size
+						slider.InputLabel.Font = window.theme.font
+						slider.InputLabel.Text = "0"
+						slider.InputLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+						slider.InputLabel.Position = slider.Main.Position
+						slider.InputLabel.Selectable = false
+						slider.InputLabel.TextSize = 15
+						slider.InputLabel.ZIndex = 9
+						slider.InputLabel.TextStrokeTransparency = 1
+						slider.InputLabel.TextXAlignment = Enum.TextXAlignment.Center
+						updateevent.Event:Connect(function(theme)
+							slider.InputLabel.Font = theme.font
+							slider.InputLabel.TextColor3 = theme.itemscolor
+						end)
+						slider.BlackOutline2 = Instance.new("Frame", slider.Main)
+						slider.BlackOutline2.Name = "blackline"
+						slider.BlackOutline2.ZIndex = 4
+						slider.BlackOutline2.Size = slider.Main.Size + UDim2.fromOffset(6, 6)
+						slider.BlackOutline2.BorderSizePixel = 0
+						slider.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+						slider.BlackOutline2.Position = UDim2.fromOffset(-3, -3)
+						updateevent.Event:Connect(function(theme)
+							slider.BlackOutline2.BackgroundColor3 = theme.outlinecolor2
+						end)
+						slider.Outline = Instance.new("Frame", slider.Main)
+						slider.Outline.Name = "blackline"
+						slider.Outline.ZIndex = 4
+						slider.Outline.Size = slider.Main.Size + UDim2.fromOffset(4, 4)
+						slider.Outline.BorderSizePixel = 0
+						slider.Outline.BackgroundColor3 = window.theme.outlinecolor
+						slider.Outline.Position = UDim2.fromOffset(-2, -2)
+						updateevent.Event:Connect(function(theme)
+							slider.Outline.BackgroundColor3 = theme.outlinecolor
+						end)
+						slider.BlackOutline = Instance.new("Frame", slider.Main)
+						slider.BlackOutline.Name = "blackline"
+						slider.BlackOutline.ZIndex = 4
+						slider.BlackOutline.Size = slider.Main.Size + UDim2.fromOffset(2, 2)
+						slider.BlackOutline.BorderSizePixel = 0
+						slider.BlackOutline.BackgroundColor3 = window.theme.outlinecolor2
+						slider.BlackOutline.Position = UDim2.fromOffset(-1, -1)
+						updateevent.Event:Connect(function(theme)
+							slider.BlackOutline.BackgroundColor3 = theme.outlinecolor2
+						end)
+						slider.Gradient = Instance.new("UIGradient", slider.Main)
+						slider.Gradient.Rotation = 90
+						slider.Gradient.Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0.00, Color3.fromRGB(49, 49, 49)),
+							ColorSequenceKeypoint.new(1.00, Color3.fromRGB(41, 41, 41))
+						})
+						slider.SlideBar = Instance.new("Frame", slider.Main)
+						slider.SlideBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255) --Color3.fromRGB(204, 0, 102)
+						slider.SlideBar.ZIndex = 8
+						slider.SlideBar.BorderSizePixel = 0
+						slider.SlideBar.Size = UDim2.fromOffset(0, slider.Main.Size.Y.Offset)
+						slider.Gradient2 = Instance.new("UIGradient", slider.SlideBar)
+						slider.Gradient2.Rotation = 90
+						slider.Gradient2.Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0.00, window.theme.accentcolor),
+							ColorSequenceKeypoint.new(1.00, window.theme.accentcolor2)
+						})
+						updateevent.Event:Connect(function(theme)
+							slider.Gradient2.Color = ColorSequence.new({
+								ColorSequenceKeypoint.new(0.00, theme.accentcolor),
+								ColorSequenceKeypoint.new(1.00, theme.accentcolor2)
+							})
+						end)
+						slider.BlackOutline2.MouseEnter:Connect(function()
+							slider.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
+						end)
+						slider.BlackOutline2.MouseLeave:Connect(function()
+							slider.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+						end)
+						if slider.flag and slider.flag ~= "" then
+							library.flags[slider.flag] = slider.default or slider.min or 0
+						end
+						function slider:Get()
+							return slider.value
+						end
+						function slider:Set(value)
+							slider.value = math.clamp(math.round(value * slider.decimals) / slider.decimals, slider.min, slider.max)
+							local percent = 1 - ((slider.max - slider.value) / (slider.max - slider.min))
+							if slider.flag and slider.flag ~= "" then
+								library.flags[slider.flag] = slider.value
+							end
+							slider.SlideBar:TweenSize(UDim2.fromOffset(percent * slider.Main.AbsoluteSize.X, slider.Main.AbsoluteSize.Y), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.05)
+							slider.InputLabel.Text = slider.value
+							pcall(slider.callback, slider.value)
+						end
+						slider:Set(slider.default)
+						function slider:Refresh()
+							local mousePos = camera:WorldToViewportPoint(mouse.Hit.p)
+							local percent = math.clamp(mousePos.X - slider.SlideBar.AbsolutePosition.X, 0, slider.Main.AbsoluteSize.X) / slider.Main.AbsoluteSize.X
+							local value = math.floor((slider.min + (slider.max - slider.min) * percent) * slider.decimals) / slider.decimals
+							value = math.clamp(value, slider.min, slider.max)
+							slider:Set(value)
+						end
+						slider.SlideBar.InputBegan:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								dragging = true
+								slider:Refresh()
+							end
+						end)
+						slider.SlideBar.InputEnded:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								dragging = false
+							end
+						end)
+						slider.Main.InputBegan:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								dragging = true
+								slider:Refresh()
+							end
+						end)
+						slider.Main.InputEnded:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								dragging = false
+							end
+						end)
+						uis.InputChanged:Connect(function(input)
+							if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+								slider:Refresh()
+							end
+						end)
+						sector:FixSize()
+						table.insert(library.items, slider)
+						return slider
+					end
+					toggle.Main.MouseButton1Down:Connect(function()
+						toggle:Set(not toggle.CheckedFrame.Visible)
+					end)
+					toggle.Label.InputBegan:Connect(function(input)
+						if input.UserInputType == Enum.UserInputType.MouseButton1 then
+							toggle:Set(not toggle.CheckedFrame.Visible)
+						end
+					end)
+					local MouseEnter = function()
+						toggle.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
+					end
+					local MouseLeave = function()
+						toggle.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+					end
+					toggle.Label.MouseEnter:Connect(MouseEnter)
+					toggle.Label.MouseLeave:Connect(MouseLeave)
+					toggle.BlackOutline2.MouseEnter:Connect(MouseEnter)
+					toggle.BlackOutline2.MouseLeave:Connect(MouseLeave)
+					sector:FixSize()
+					table.insert(library.items, toggle)
+					return toggle
+				end
+				function sector:AddTextbox(text, default, callback, flag)
+					local textbox = { }
+					textbox.text = text or ""
+					textbox.callback = callback or function()
+					end
+					textbox.default = default
+					textbox.value = ""
+					textbox.flag = flag or text or ""
+					textbox.Label = Instance.new("TextButton", sector.Items)
+					textbox.Label.Name = "Label"
+					textbox.Label.AutoButtonColor = false
+					textbox.Label.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					textbox.Label.BackgroundTransparency = 1
+					textbox.Label.Position = UDim2.fromOffset(sector.Main.Size.X.Offset, 0)
+					textbox.Label.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 0)
+					textbox.Label.Font = window.theme.font
+					textbox.Label.ZIndex = 5
+					textbox.Label.Text = textbox.text
+					textbox.Label.TextColor3 = window.theme.itemscolor
+					textbox.Label.TextSize = 15
+					textbox.Label.TextStrokeTransparency = 1
+					textbox.Label.TextXAlignment = Enum.TextXAlignment.Left
+					updateevent.Event:Connect(function(theme)
+						textbox.Label.Font = theme.font
+					end)
+					textbox.Holder = Instance.new("Frame", sector.Items)
+					textbox.Holder.Name = "holder"
+					textbox.Holder.ZIndex = 5
+					textbox.Holder.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 14)
+					textbox.Holder.BorderSizePixel = 0
+					textbox.Holder.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					textbox.Gradient = Instance.new("UIGradient", textbox.Holder)
+					textbox.Gradient.Rotation = 90
+					textbox.Gradient.Color = ColorSequence.new({
+						ColorSequenceKeypoint.new(0.00, Color3.fromRGB(49, 49, 49)),
+						ColorSequenceKeypoint.new(1.00, Color3.fromRGB(39, 39, 39))
+					})
+					textbox.Main = Instance.new("TextBox", textbox.Holder)
+					textbox.Main.PlaceholderText = textbox.text
+					textbox.Main.PlaceholderColor3 = Color3.fromRGB(190, 190, 190)
+					textbox.Main.Text = ""
+					textbox.Main.BackgroundTransparency = 1
+					textbox.Main.Font = window.theme.font
+					textbox.Main.Name = "textbox"
+					textbox.Main.MultiLine = false
+					textbox.Main.ClearTextOnFocus = false
+					textbox.Main.ZIndex = 5
+					textbox.Main.TextScaled = true
+					textbox.Main.Size = textbox.Holder.Size
+					textbox.Main.TextSize = 15
+					textbox.Main.TextColor3 = Color3.fromRGB(255, 255, 255)
+					textbox.Main.BorderSizePixel = 0
+					textbox.Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+					textbox.Main.TextXAlignment = Enum.TextXAlignment.Left
+					if textbox.flag and textbox.flag ~= "" then
+						library.flags[textbox.flag] = textbox.default or ""
+					end
+					function textbox:Set(text)
+						textbox.value = text
+						textbox.Main.Text = text
+						if textbox.flag and textbox.flag ~= "" then
+							library.flags[textbox.flag] = text
+						end
+						pcall(textbox.callback, text)
+					end
+					updateevent.Event:Connect(function(theme)
+						textbox.Main.Font = theme.font
+					end)
+					function textbox:Get()
+						return textbox.value
+					end
+					if textbox.default then
+						textbox:Set(textbox.default)
+					end
+					textbox.Main.FocusLost:Connect(function()
+						textbox:Set(textbox.Main.Text)
+					end)
+					textbox.BlackOutline2 = Instance.new("Frame", textbox.Main)
+					textbox.BlackOutline2.Name = "blackline"
+					textbox.BlackOutline2.ZIndex = 4
+					textbox.BlackOutline2.Size = textbox.Main.Size + UDim2.fromOffset(6, 6)
+					textbox.BlackOutline2.BorderSizePixel = 0
+					textbox.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+					textbox.BlackOutline2.Position = UDim2.fromOffset(-3, -3)
+					updateevent.Event:Connect(function(theme)
+						textbox.BlackOutline2.BackgroundColor3 = theme.outlinecolor2
+					end)
+					textbox.Outline = Instance.new("Frame", textbox.Main)
+					textbox.Outline.Name = "blackline"
+					textbox.Outline.ZIndex = 4
+					textbox.Outline.Size = textbox.Main.Size + UDim2.fromOffset(4, 4)
+					textbox.Outline.BorderSizePixel = 0
+					textbox.Outline.BackgroundColor3 = window.theme.outlinecolor
+					textbox.Outline.Position = UDim2.fromOffset(-2, -2)
+					updateevent.Event:Connect(function(theme)
+						textbox.Outline.BackgroundColor3 = theme.outlinecolor
+					end)
+					textbox.BlackOutline = Instance.new("Frame", textbox.Main)
+					textbox.BlackOutline.Name = "blackline"
+					textbox.BlackOutline.ZIndex = 4
+					textbox.BlackOutline.Size = textbox.Main.Size + UDim2.fromOffset(2, 2)
+					textbox.BlackOutline.BorderSizePixel = 0
+					textbox.BlackOutline.BackgroundColor3 = window.theme.outlinecolor2
+					textbox.BlackOutline.Position = UDim2.fromOffset(-1, -1)
+					updateevent.Event:Connect(function(theme)
+						textbox.BlackOutline.BackgroundColor3 = theme.outlinecolor2
+					end)
+					textbox.BlackOutline2.MouseEnter:Connect(function()
+						textbox.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
+					end)
+					textbox.BlackOutline2.MouseLeave:Connect(function()
+						textbox.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+					end)
+					sector:FixSize()
+					table.insert(library.items, textbox)
+					return textbox
+				end
+				function sector:AddSlider(text, min, default, max, decimals, callback, flag)
+					local slider = { }
+					slider.text = text or ""
+					slider.callback = callback or function(value)
+					end
+					slider.min = min or 0
+					slider.max = max or 100
+					slider.decimals = decimals or 1
+					slider.default = default or slider.min
+					slider.flag = flag or text or ""
+					slider.value = slider.default
+					local dragging = false
+					slider.MainBack = Instance.new("Frame", sector.Items)
+					slider.MainBack.Name = "MainBack"
+					slider.MainBack.ZIndex = 7
+					slider.MainBack.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 25)
+					slider.MainBack.BorderSizePixel = 0
+					slider.MainBack.BackgroundTransparency = 1
+					slider.Label = Instance.new("TextLabel", slider.MainBack)
+					slider.Label.BackgroundTransparency = 1
+					slider.Label.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 6)
+					slider.Label.Font = window.theme.font
+					slider.Label.Text = slider.text .. ":"
+					slider.Label.TextColor3 = window.theme.itemscolor
+					slider.Label.Position = UDim2.fromOffset(0, 0)
+					slider.Label.TextSize = 15
+					slider.Label.ZIndex = 4
+					slider.Label.TextStrokeTransparency = 1
+					slider.Label.TextXAlignment = Enum.TextXAlignment.Left
+					updateevent.Event:Connect(function(theme)
+						slider.Label.Font = theme.font
+						slider.Label.TextColor3 = theme.itemscolor
+					end)
+					local size = textservice:GetTextSize(slider.Label.Text, slider.Label.TextSize, slider.Label.Font, Vector2.new(200, 300))
+					slider.InputLabel = Instance.new("TextBox", slider.MainBack)
+					slider.InputLabel.BackgroundTransparency = 1
+					slider.InputLabel.ClearTextOnFocus = false
+					slider.InputLabel.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - size.X - 15, 12)
+					slider.InputLabel.Font = window.theme.font
+					slider.InputLabel.Text = "0"
+					slider.InputLabel.TextColor3 = window.theme.itemscolor
+					slider.InputLabel.Position = UDim2.fromOffset(size.X + 3, -3)
+					slider.InputLabel.TextSize = 15
+					slider.InputLabel.ZIndex = 4
+					slider.InputLabel.TextStrokeTransparency = 1
+					slider.InputLabel.TextXAlignment = Enum.TextXAlignment.Left
+					updateevent.Event:Connect(function(theme)
+						slider.InputLabel.Font = theme.font
+						slider.InputLabel.TextColor3 = theme.itemscolor
+						local size = textservice:GetTextSize(slider.Label.Text, slider.Label.TextSize, slider.Label.Font, Vector2.new(200, 300))
+						slider.InputLabel.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - size.X - 15, 12)
+					end)
+					slider.Main = Instance.new("TextButton", slider.MainBack)
+					slider.Main.Name = "slider"
+					slider.Main.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					slider.Main.Position = UDim2.fromOffset(0, 15)
+					slider.Main.BorderSizePixel = 0
+					slider.Main.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 12)
+					slider.Main.AutoButtonColor = false
+					slider.Main.Text = ""
+					slider.Main.ZIndex = 5
+					slider.BlackOutline2 = Instance.new("Frame", slider.Main)
+					slider.BlackOutline2.Name = "blackline"
+					slider.BlackOutline2.ZIndex = 4
+					slider.BlackOutline2.Size = slider.Main.Size + UDim2.fromOffset(6, 6)
+					slider.BlackOutline2.BorderSizePixel = 0
+					slider.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+					slider.BlackOutline2.Position = UDim2.fromOffset(-3, -3)
+					updateevent.Event:Connect(function(theme)
+						slider.BlackOutline2.BackgroundColor3 = theme.outlinecolor2
+					end)
+					slider.Outline = Instance.new("Frame", slider.Main)
+					slider.Outline.Name = "blackline"
+					slider.Outline.ZIndex = 4
+					slider.Outline.Size = slider.Main.Size + UDim2.fromOffset(4, 4)
+					slider.Outline.BorderSizePixel = 0
+					slider.Outline.BackgroundColor3 = window.theme.outlinecolor
+					slider.Outline.Position = UDim2.fromOffset(-2, -2)
+					updateevent.Event:Connect(function(theme)
+						slider.Outline.BackgroundColor3 = theme.outlinecolor
+					end)
+					slider.BlackOutline = Instance.new("Frame", slider.Main)
+					slider.BlackOutline.Name = "blackline"
+					slider.BlackOutline.ZIndex = 4
+					slider.BlackOutline.Size = slider.Main.Size + UDim2.fromOffset(2, 2)
+					slider.BlackOutline.BorderSizePixel = 0
+					slider.BlackOutline.BackgroundColor3 = window.theme.outlinecolor2
+					slider.BlackOutline.Position = UDim2.fromOffset(-1, -1)
+					updateevent.Event:Connect(function(theme)
+						slider.BlackOutline.BackgroundColor3 = theme.outlinecolor2
+					end)
+					slider.Gradient = Instance.new("UIGradient", slider.Main)
+					slider.Gradient.Rotation = 90
+					slider.Gradient.Color = ColorSequence.new({
+						ColorSequenceKeypoint.new(0.00, Color3.fromRGB(49, 49, 49)),
+						ColorSequenceKeypoint.new(1.00, Color3.fromRGB(41, 41, 41))
+					})
+					slider.SlideBar = Instance.new("Frame", slider.Main)
+					slider.SlideBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255) --Color3.fromRGB(204, 0, 102)
+					slider.SlideBar.ZIndex = 5
+					slider.SlideBar.BorderSizePixel = 0
+					slider.SlideBar.Size = UDim2.fromOffset(0, slider.Main.Size.Y.Offset)
+					slider.Gradient2 = Instance.new("UIGradient", slider.SlideBar)
+					slider.Gradient2.Rotation = 90
+					slider.Gradient2.Color = ColorSequence.new({
+						ColorSequenceKeypoint.new(0.00, window.theme.accentcolor),
+						ColorSequenceKeypoint.new(1.00, window.theme.accentcolor2)
+					})
+					updateevent.Event:Connect(function(theme)
+						slider.Gradient2.Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0.00, theme.accentcolor),
+							ColorSequenceKeypoint.new(1.00, theme.accentcolor2)
+						})
+					end)
+					slider.BlackOutline2.MouseEnter:Connect(function()
+						slider.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
+					end)
+					slider.BlackOutline2.MouseLeave:Connect(function()
+						slider.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+					end)
+					if slider.flag and slider.flag ~= "" then
+						library.flags[slider.flag] = slider.default or slider.min or 0
+					end
+					function slider:Get()
+						return slider.value
+					end
+					function slider:Set(value)
+						slider.value = math.clamp(math.round(value * slider.decimals) / slider.decimals, slider.min, slider.max)
+						local percent = 1 - ((slider.max - slider.value) / (slider.max - slider.min))
+						if slider.flag and slider.flag ~= "" then
+							library.flags[slider.flag] = slider.value
+						end
+						slider.SlideBar:TweenSize(UDim2.fromOffset(percent * slider.Main.AbsoluteSize.X, slider.Main.AbsoluteSize.Y), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.05)
+						slider.InputLabel.Text = slider.value
+						pcall(slider.callback, slider.value)
+					end
+					slider:Set(slider.default)
+					slider.InputLabel.FocusLost:Connect(function(Return)
+						if not Return then
+							return
+						end
+						if (slider.InputLabel.Text:match("^%d+$")) then
+							slider:Set(tonumber(slider.InputLabel.Text))
+						else
+							slider.InputLabel.Text = tostring(slider.value)
+						end
+					end)
+					function slider:Refresh()
+						local mousePos = camera:WorldToViewportPoint(mouse.Hit.p)
+						local percent = math.clamp(mousePos.X - slider.SlideBar.AbsolutePosition.X, 0, slider.Main.AbsoluteSize.X) / slider.Main.AbsoluteSize.X
+						local value = math.floor((slider.min + (slider.max - slider.min) * percent) * slider.decimals) / slider.decimals
+						value = math.clamp(value, slider.min, slider.max)
+						slider:Set(value)
+					end
+					slider.SlideBar.InputBegan:Connect(function(input)
+						if input.UserInputType == Enum.UserInputType.MouseButton1 then
+							dragging = true
+							slider:Refresh()
+						end
+					end)
+					slider.SlideBar.InputEnded:Connect(function(input)
+						if input.UserInputType == Enum.UserInputType.MouseButton1 then
+							dragging = false
+						end
+					end)
+					slider.Main.InputBegan:Connect(function(input)
+						if input.UserInputType == Enum.UserInputType.MouseButton1 then
+							dragging = true
+							slider:Refresh()
+						end
+					end)
+					slider.Main.InputEnded:Connect(function(input)
+						if input.UserInputType == Enum.UserInputType.MouseButton1 then
+							dragging = false
+						end
+					end)
+					uis.InputChanged:Connect(function(input)
+						if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+							slider:Refresh()
+						end
+					end)
+					sector:FixSize()
+					table.insert(library.items, slider)
+					return slider
+				end
+				function sector:AddColorpicker(text, default, callback, flag)
+					local colorpicker = { }
+					colorpicker.text = text or ""
+					colorpicker.callback = callback or function()
+					end
+					colorpicker.default = default or Color3.fromRGB(255, 255, 255)
+					colorpicker.value = colorpicker.default
+					colorpicker.flag = flag or text or ""
+					colorpicker.Label = Instance.new("TextLabel", sector.Items)
+					colorpicker.Label.BackgroundTransparency = 1
+					colorpicker.Label.Size = UDim2.fromOffset(156, 10)
+					colorpicker.Label.ZIndex = 4
+					colorpicker.Label.Font = window.theme.font
+					colorpicker.Label.Text = colorpicker.text
+					colorpicker.Label.TextColor3 = window.theme.itemscolor
+					colorpicker.Label.TextSize = 15
+					colorpicker.Label.TextStrokeTransparency = 1
+					colorpicker.Label.TextXAlignment = Enum.TextXAlignment.Left
+					updateevent.Event:Connect(function(theme)
+						colorpicker.Label.Font = theme.font
+						colorpicker.Label.TextColor3 = theme.itemscolor
+					end)
+					colorpicker.Main = Instance.new("Frame", colorpicker.Label)
+					colorpicker.Main.ZIndex = 6
+					colorpicker.Main.BorderSizePixel = 0
+					colorpicker.Main.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 29, 0)
+					colorpicker.Main.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					colorpicker.Main.Size = UDim2.fromOffset(16, 10)
+					colorpicker.Gradient = Instance.new("UIGradient", colorpicker.Main)
+					colorpicker.Gradient.Rotation = 90
+					local clr = Color3.new(math.clamp(colorpicker.value.R / 1.7, 0, 1), math.clamp(colorpicker.value.G / 1.7, 0, 1), math.clamp(colorpicker.value.B / 1.7, 0, 1))
+					colorpicker.Gradient.Color = ColorSequence.new({
+						ColorSequenceKeypoint.new(0.00, colorpicker.value),
+						ColorSequenceKeypoint.new(1.00, clr)
+					})
+					colorpicker.BlackOutline2 = Instance.new("Frame", colorpicker.Main)
+					colorpicker.BlackOutline2.Name = "blackline"
+					colorpicker.BlackOutline2.ZIndex = 4
+					colorpicker.BlackOutline2.Size = colorpicker.Main.Size + UDim2.fromOffset(6, 6)
+					colorpicker.BlackOutline2.BorderSizePixel = 0
+					colorpicker.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+					colorpicker.BlackOutline2.Position = UDim2.fromOffset(-3, -3)
+					updateevent.Event:Connect(function(theme)
+						colorpicker.BlackOutline2.BackgroundColor3 = window.OpenedColorPickers[colorpicker.MainPicker] and theme.accentcolor or theme.outlinecolor2
+					end)
+					colorpicker.Outline = Instance.new("Frame", colorpicker.Main)
+					colorpicker.Outline.Name = "blackline"
+					colorpicker.Outline.ZIndex = 4
+					colorpicker.Outline.Size = colorpicker.Main.Size + UDim2.fromOffset(4, 4)
+					colorpicker.Outline.BorderSizePixel = 0
+					colorpicker.Outline.BackgroundColor3 = window.theme.outlinecolor
+					colorpicker.Outline.Position = UDim2.fromOffset(-2, -2)
+					updateevent.Event:Connect(function(theme)
+						colorpicker.Outline.BackgroundColor3 = theme.outlinecolor
+					end)
+					colorpicker.BlackOutline = Instance.new("Frame", colorpicker.Main)
+					colorpicker.BlackOutline.Name = "blackline"
+					colorpicker.BlackOutline.ZIndex = 4
+					colorpicker.BlackOutline.Size = colorpicker.Main.Size + UDim2.fromOffset(2, 2)
+					colorpicker.BlackOutline.BorderSizePixel = 0
+					colorpicker.BlackOutline.BackgroundColor3 = window.theme.outlinecolor2
+					colorpicker.BlackOutline.Position = UDim2.fromOffset(-1, -1)
+					updateevent.Event:Connect(function(theme)
+						colorpicker.BlackOutline.BackgroundColor3 = theme.outlinecolor2
+					end)
+					colorpicker.BlackOutline2.MouseEnter:Connect(function()
+						colorpicker.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
+					end)
+					colorpicker.BlackOutline2.MouseLeave:Connect(function()
+						if not window.OpenedColorPickers[colorpicker.MainPicker] then
+							colorpicker.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+						end
+					end)
+					colorpicker.MainPicker = Instance.new("TextButton", colorpicker.Main)
+					colorpicker.MainPicker.Name = "picker"
+					colorpicker.MainPicker.ZIndex = 100
+					colorpicker.MainPicker.Visible = false
+					colorpicker.MainPicker.AutoButtonColor = false
+					colorpicker.MainPicker.Text = ""
+					window.OpenedColorPickers[colorpicker.MainPicker] = false
+					colorpicker.MainPicker.Size = UDim2.fromOffset(180, 196)
+					colorpicker.MainPicker.BorderSizePixel = 0
+					colorpicker.MainPicker.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+					colorpicker.MainPicker.Rotation = 0.000000000000001
+					colorpicker.MainPicker.Position = UDim2.fromOffset(-colorpicker.MainPicker.AbsoluteSize.X + colorpicker.Main.AbsoluteSize.X, 15)
+					colorpicker.BlackOutline3 = Instance.new("Frame", colorpicker.MainPicker)
+					colorpicker.BlackOutline3.Name = "blackline"
+					colorpicker.BlackOutline3.ZIndex = 98
+					colorpicker.BlackOutline3.Size = colorpicker.MainPicker.Size + UDim2.fromOffset(6, 6)
+					colorpicker.BlackOutline3.BorderSizePixel = 0
+					colorpicker.BlackOutline3.BackgroundColor3 = window.theme.outlinecolor2
+					colorpicker.BlackOutline3.Position = UDim2.fromOffset(-3, -3)
+					updateevent.Event:Connect(function(theme)
+						colorpicker.BlackOutline3.BackgroundColor3 = theme.outlinecolor2
+					end)
+					colorpicker.Outline2 = Instance.new("Frame", colorpicker.MainPicker)
+					colorpicker.Outline2.Name = "blackline"
+					colorpicker.Outline2.ZIndex = 98
+					colorpicker.Outline2.Size = colorpicker.MainPicker.Size + UDim2.fromOffset(4, 4)
+					colorpicker.Outline2.BorderSizePixel = 0
+					colorpicker.Outline2.BackgroundColor3 = window.theme.outlinecolor
+					colorpicker.Outline2.Position = UDim2.fromOffset(-2, -2)
+					updateevent.Event:Connect(function(theme)
+						colorpicker.Outline2.BackgroundColor3 = theme.outlinecolor
+					end)
+					colorpicker.BlackOutline3 = Instance.new("Frame", colorpicker.MainPicker)
+					colorpicker.BlackOutline3.Name = "blackline"
+					colorpicker.BlackOutline3.ZIndex = 98
+					colorpicker.BlackOutline3.Size = colorpicker.MainPicker.Size + UDim2.fromOffset(2, 2)
+					colorpicker.BlackOutline3.BorderSizePixel = 0
+					colorpicker.BlackOutline3.BackgroundColor3 = window.theme.outlinecolor2
+					colorpicker.BlackOutline3.Position = UDim2.fromOffset(-1, -1)
+					updateevent.Event:Connect(function(theme)
+						colorpicker.BlackOutline3.BackgroundColor3 = theme.outlinecolor2
+					end)
+					colorpicker.hue = Instance.new("ImageLabel", colorpicker.MainPicker)
+					colorpicker.hue.ZIndex = 101
+					colorpicker.hue.Position = UDim2.new(0, 3, 0, 3)
+					colorpicker.hue.Size = UDim2.new(0, 172, 0, 172)
+					colorpicker.hue.Image = "rbxassetid://4155801252"
+					colorpicker.hue.ScaleType = Enum.ScaleType.Stretch
+					colorpicker.hue.BackgroundColor3 = Color3.new(1, 0, 0)
+					colorpicker.hue.BorderColor3 = window.theme.outlinecolor2
+					updateevent.Event:Connect(function(theme)
+						colorpicker.hue.BorderColor3 = theme.outlinecolor2
+					end)
+					colorpicker.hueselectorpointer = Instance.new("ImageLabel", colorpicker.MainPicker)
+					colorpicker.hueselectorpointer.ZIndex = 101
+					colorpicker.hueselectorpointer.BackgroundTransparency = 1
+					colorpicker.hueselectorpointer.BorderSizePixel = 0
+					colorpicker.hueselectorpointer.Position = UDim2.new(0, 0, 0, 0)
+					colorpicker.hueselectorpointer.Size = UDim2.new(0, 7, 0, 7)
+					colorpicker.hueselectorpointer.Image = "rbxassetid://6885856475"
+					colorpicker.selector = Instance.new("TextLabel", colorpicker.MainPicker)
+					colorpicker.selector.ZIndex = 100
+					colorpicker.selector.Position = UDim2.new(0, 3, 0, 181)
+					colorpicker.selector.Size = UDim2.new(0, 173, 0, 10)
+					colorpicker.selector.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					colorpicker.selector.BorderColor3 = window.theme.outlinecolor2
+					colorpicker.selector.Text = ""
+					updateevent.Event:Connect(function(theme)
+						colorpicker.selector.BorderColor3 = theme.outlinecolor2
+					end)
+					colorpicker.gradient = Instance.new("UIGradient", colorpicker.selector)
+					colorpicker.gradient.Color = ColorSequence.new({
+						ColorSequenceKeypoint.new(0, Color3.new(1, 0, 0)),
+						ColorSequenceKeypoint.new(0.17, Color3.new(1, 0, 1)),
+						ColorSequenceKeypoint.new(0.33, Color3.new(0, 0, 1)),
+						ColorSequenceKeypoint.new(0.5, Color3.new(0, 1, 1)),
+						ColorSequenceKeypoint.new(0.67, Color3.new(0, 1, 0)),
+						ColorSequenceKeypoint.new(0.83, Color3.new(1, 1, 0)),
+						ColorSequenceKeypoint.new(1, Color3.new(1, 0, 0))
+					})
+					colorpicker.pointer = Instance.new("Frame", colorpicker.selector)
+					colorpicker.pointer.ZIndex = 101
+					colorpicker.pointer.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+					colorpicker.pointer.Position = UDim2.new(0, 0, 0, 0)
+					colorpicker.pointer.Size = UDim2.new(0, 2, 0, 10)
+					colorpicker.pointer.BorderColor3 = Color3.fromRGB(255, 255, 255)
+					if colorpicker.flag and colorpicker.flag ~= "" then
+						library.flags[colorpicker.flag] = colorpicker.default
+					end
+					function colorpicker:RefreshSelector()
+						local pos = math.clamp((mouse.X - colorpicker.hue.AbsolutePosition.X) / colorpicker.hue.AbsoluteSize.X, 0, 1)
+						colorpicker.color = 1 - pos
+						colorpicker.pointer:TweenPosition(UDim2.new(pos, 0, 0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.05)
+						colorpicker.hue.BackgroundColor3 = Color3.fromHSV(1 - pos, 1, 1)
+					end
+					function colorpicker:RefreshHue()
+						local x = (mouse.X - colorpicker.hue.AbsolutePosition.X) / colorpicker.hue.AbsoluteSize.X
+						local y = (mouse.Y - colorpicker.hue.AbsolutePosition.Y) / colorpicker.hue.AbsoluteSize.Y
+						colorpicker.hueselectorpointer:TweenPosition(UDim2.new(math.clamp(x * colorpicker.hue.AbsoluteSize.X, 0.5, 0.952 * colorpicker.hue.AbsoluteSize.X) / colorpicker.hue.AbsoluteSize.X, 0, math.clamp(y * colorpicker.hue.AbsoluteSize.Y, 0.5, 0.885 * colorpicker.hue.AbsoluteSize.Y) / colorpicker.hue.AbsoluteSize.Y, 0), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.05)
+						colorpicker:Set(Color3.fromHSV(colorpicker.color, math.clamp(x * colorpicker.hue.AbsoluteSize.X, 0.5, 1 * colorpicker.hue.AbsoluteSize.X) / colorpicker.hue.AbsoluteSize.X, 1 - (math.clamp(y * colorpicker.hue.AbsoluteSize.Y, 0.5, 1 * colorpicker.hue.AbsoluteSize.Y) / colorpicker.hue.AbsoluteSize.Y)))
+					end
+					function colorpicker:Set(value)
+						local color = Color3.new(math.clamp(value.r, 0, 1), math.clamp(value.g, 0, 1), math.clamp(value.b, 0, 1))
+						colorpicker.value = color
+						if colorpicker.flag and colorpicker.flag ~= "" then
+							library.flags[colorpicker.flag] = color
+						end
+						local clr = Color3.new(math.clamp(color.R / 1.7, 0, 1), math.clamp(color.G / 1.7, 0, 1), math.clamp(color.B / 1.7, 0, 1))
+						colorpicker.Gradient.Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0.00, color),
+							ColorSequenceKeypoint.new(1.00, clr)
+						})
+						pcall(colorpicker.callback, color)
+					end
+					function colorpicker:Get()
+						return colorpicker.value
+					end
+					colorpicker:Set(colorpicker.default)
+					function colorpicker:AddDropdown(items, default, multichoice, callback, flag)
+						local dropdown = { }
+						dropdown.defaultitems = items or { }
+						dropdown.default = default
+						dropdown.callback = callback or function()
+						end
+						dropdown.multichoice = multichoice or false
+						dropdown.values = { }
+						dropdown.flag = flag or ((colorpicker.text or "") .. tostring( #(sector.Items:GetChildren()) ))
+						dropdown.Main = Instance.new("TextButton", sector.Items)
+						dropdown.Main.Name = "dropdown"
+						dropdown.Main.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+						dropdown.Main.BorderSizePixel = 0
+						dropdown.Main.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 16)
+						dropdown.Main.Position = UDim2.fromOffset(0, 0)
+						dropdown.Main.ZIndex = 5
+						dropdown.Main.AutoButtonColor = false
+						dropdown.Main.Font = window.theme.font
+						dropdown.Main.Text = ""
+						dropdown.Main.TextColor3 = Color3.fromRGB(255, 255, 255)
+						dropdown.Main.TextSize = 15
+						dropdown.Main.TextXAlignment = Enum.TextXAlignment.Left
+						updateevent.Event:Connect(function(theme)
+							dropdown.Main.Font = theme.font
+						end)
+						dropdown.Gradient = Instance.new("UIGradient", dropdown.Main)
+						dropdown.Gradient.Rotation = 90
+						dropdown.Gradient.Color = ColorSequence.new{
+							ColorSequenceKeypoint.new(0.00, Color3.fromRGB(49, 49, 49)),
+							ColorSequenceKeypoint.new(1.00, Color3.fromRGB(39, 39, 39))
+						}
+						dropdown.SelectedLabel = Instance.new("TextLabel", dropdown.Main)
+						dropdown.SelectedLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+						dropdown.SelectedLabel.BackgroundTransparency = 1
+						dropdown.SelectedLabel.Position = UDim2.fromOffset(5, 2)
+						dropdown.SelectedLabel.Size = UDim2.fromOffset(130, 13)
+						dropdown.SelectedLabel.Font = window.theme.font
+						dropdown.SelectedLabel.Text = colorpicker.text
+						dropdown.SelectedLabel.ZIndex = 5
+						dropdown.SelectedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+						dropdown.SelectedLabel.TextSize = 15
+						dropdown.SelectedLabel.TextStrokeTransparency = 1
+						dropdown.SelectedLabel.TextXAlignment = Enum.TextXAlignment.Left
+						updateevent.Event:Connect(function(theme)
+							dropdown.SelectedLabel.Font = theme.font
+						end)
+						dropdown.Nav = Instance.new("ImageButton", dropdown.Main)
+						dropdown.Nav.Name = "navigation"
+						dropdown.Nav.BackgroundTransparency = 1
+						dropdown.Nav.LayoutOrder = 10
+						dropdown.Nav.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 26, 5)
+						dropdown.Nav.Rotation = 90
+						dropdown.Nav.ZIndex = 5
+						dropdown.Nav.Size = UDim2.fromOffset(8, 8)
+						dropdown.Nav.Image = "rbxassetid://4918373417"
+						dropdown.Nav.ImageColor3 = Color3.fromRGB(210, 210, 210)
+						dropdown.BlackOutline2 = Instance.new("Frame", dropdown.Main)
+						dropdown.BlackOutline2.Name = "blackline"
+						dropdown.BlackOutline2.ZIndex = 4
+						dropdown.BlackOutline2.Size = dropdown.Main.Size + UDim2.fromOffset(6, 6)
+						dropdown.BlackOutline2.BorderSizePixel = 0
+						dropdown.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+						dropdown.BlackOutline2.Position = UDim2.fromOffset(-3, -3)
+						updateevent.Event:Connect(function(theme)
+							dropdown.BlackOutline2.BackgroundColor3 = theme.outlinecolor2
+						end)
+						dropdown.Outline = Instance.new("Frame", dropdown.Main)
+						dropdown.Outline.Name = "blackline"
+						dropdown.Outline.ZIndex = 4
+						dropdown.Outline.Size = dropdown.Main.Size + UDim2.fromOffset(4, 4)
+						dropdown.Outline.BorderSizePixel = 0
+						dropdown.Outline.BackgroundColor3 = window.theme.outlinecolor
+						dropdown.Outline.Position = UDim2.fromOffset(-2, -2)
+						updateevent.Event:Connect(function(theme)
+							dropdown.Outline.BackgroundColor3 = theme.outlinecolor
+						end)
+						dropdown.BlackOutline = Instance.new("Frame", dropdown.Main)
+						dropdown.BlackOutline.Name = "blackline"
+						dropdown.BlackOutline.ZIndex = 4
+						dropdown.BlackOutline.Size = dropdown.Main.Size + UDim2.fromOffset(2, 2)
+						dropdown.BlackOutline.BorderSizePixel = 0
+						dropdown.BlackOutline.BackgroundColor3 = window.theme.outlinecolor2
+						dropdown.BlackOutline.Position = UDim2.fromOffset(-1, -1)
+						updateevent.Event:Connect(function(theme)
+							dropdown.BlackOutline.BackgroundColor3 = theme.outlinecolor2
+						end)
+						dropdown.ItemsFrame = Instance.new("ScrollingFrame", dropdown.Main)
+						dropdown.ItemsFrame.Name = "itemsframe"
+						dropdown.ItemsFrame.BorderSizePixel = 0
+						dropdown.ItemsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+						dropdown.ItemsFrame.Position = UDim2.fromOffset(0, dropdown.Main.Size.Y.Offset + 8)
+						dropdown.ItemsFrame.ScrollBarThickness = 2
+						dropdown.ItemsFrame.ZIndex = 8
+						dropdown.ItemsFrame.ScrollingDirection = "Y"
+						dropdown.ItemsFrame.Visible = false
+						dropdown.ItemsFrame.CanvasSize = UDim2.fromOffset(dropdown.Main.AbsoluteSize.X, 0)
+						dropdown.ListLayout = Instance.new("UIListLayout", dropdown.ItemsFrame)
+						dropdown.ListLayout.FillDirection = Enum.FillDirection.Vertical
+						dropdown.ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+						dropdown.ListPadding = Instance.new("UIPadding", dropdown.ItemsFrame)
+						dropdown.ListPadding.PaddingTop = UDim.new(0, 2)
+						dropdown.ListPadding.PaddingBottom = UDim.new(0, 2)
+						dropdown.ListPadding.PaddingLeft = UDim.new(0, 2)
+						dropdown.ListPadding.PaddingRight = UDim.new(0, 2)
+						dropdown.BlackOutline2Items = Instance.new("Frame", dropdown.Main)
+						dropdown.BlackOutline2Items.Name = "blackline"
+						dropdown.BlackOutline2Items.ZIndex = 7
+						dropdown.BlackOutline2Items.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(6, 6)
+						dropdown.BlackOutline2Items.BorderSizePixel = 0
+						dropdown.BlackOutline2Items.BackgroundColor3 = window.theme.outlinecolor2
+						dropdown.BlackOutline2Items.Position = dropdown.ItemsFrame.Position + UDim2.fromOffset(-3, -3)
+						dropdown.BlackOutline2Items.Visible = false
+						updateevent.Event:Connect(function(theme)
+							dropdown.BlackOutline2Items.BackgroundColor3 = theme.outlinecolor2
+						end)
+						dropdown.OutlineItems = Instance.new("Frame", dropdown.Main)
+						dropdown.OutlineItems.Name = "blackline"
+						dropdown.OutlineItems.ZIndex = 7
+						dropdown.OutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(4, 4)
+						dropdown.OutlineItems.BorderSizePixel = 0
+						dropdown.OutlineItems.BackgroundColor3 = window.theme.outlinecolor
+						dropdown.OutlineItems.Position = dropdown.ItemsFrame.Position + UDim2.fromOffset(-2, -2)
+						dropdown.OutlineItems.Visible = false
+						updateevent.Event:Connect(function(theme)
+							dropdown.OutlineItems.BackgroundColor3 = theme.outlinecolor
+						end)
+						dropdown.BlackOutlineItems = Instance.new("Frame", dropdown.Main)
+						dropdown.BlackOutlineItems.Name = "blackline"
+						dropdown.BlackOutlineItems.ZIndex = 7
+						dropdown.BlackOutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(-2, -2)
+						dropdown.BlackOutlineItems.BorderSizePixel = 0
+						dropdown.BlackOutlineItems.BackgroundColor3 = window.theme.outlinecolor2
+						dropdown.BlackOutlineItems.Position = dropdown.ItemsFrame.Position + UDim2.fromOffset(-1, -1)
+						dropdown.BlackOutlineItems.Visible = false
+						updateevent.Event:Connect(function(theme)
+							dropdown.BlackOutlineItems.BackgroundColor3 = theme.outlinecolor2
+						end)
+						dropdown.IgnoreBackButtons = Instance.new("TextButton", dropdown.Main)
+						dropdown.IgnoreBackButtons.BackgroundTransparency = 1
+						dropdown.IgnoreBackButtons.BorderSizePixel = 0
+						dropdown.IgnoreBackButtons.Position = UDim2.fromOffset(0, dropdown.Main.Size.Y.Offset + 8)
+						dropdown.IgnoreBackButtons.Size = UDim2.new(0, 0, 0, 0)
+						dropdown.IgnoreBackButtons.ZIndex = 7
+						dropdown.IgnoreBackButtons.Text = ""
+						dropdown.IgnoreBackButtons.Visible = false
+						dropdown.IgnoreBackButtons.AutoButtonColor = false
+						if dropdown.flag and dropdown.flag ~= "" then
+							library.flags[dropdown.flag] = dropdown.multichoice and {
+								dropdown.default or dropdown.defaultitems[1] or ""
+							} or (dropdown.default or dropdown.defaultitems[1] or "")
+						end
+						function dropdown:isSelected(item)
+							for i, v in pairs(dropdown.values) do
+								if v == item then
+									return true
+								end
+							end
+							return false
+						end
+						function dropdown:updateText(text)
+							if #text >= 27 then
+								text = text:sub(1, 25) .. ".."
+							end
+							dropdown.SelectedLabel.Text = text
+						end
+						dropdown.Changed = Instance.new("BindableEvent")
+						function dropdown:Set(value)
+							if type(value) == "table" then
+								dropdown.values = value
+								dropdown:updateText(table.concat(value, ", "))
+								pcall(dropdown.callback, value)
+							else
+								dropdown:updateText(value)
+								dropdown.values = {
+									value
+								}
+								pcall(dropdown.callback, value)
+							end
+							dropdown.Changed:Fire(value)
+							if dropdown.flag and dropdown.flag ~= "" then
+								library.flags[dropdown.flag] = dropdown.multichoice and dropdown.values or dropdown.values[1]
+							end
+						end
+						function dropdown:Get()
+							return dropdown.multichoice and dropdown.values or dropdown.values[1]
+						end
+						dropdown.items = { }
+						function dropdown:Add(v)
+							local Item = Instance.new("TextButton", dropdown.ItemsFrame)
+							Item.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+							Item.TextColor3 = Color3.fromRGB(255, 255, 255)
+							Item.BorderSizePixel = 0
+							Item.Position = UDim2.fromOffset(0, 0)
+							Item.Size = UDim2.fromOffset(dropdown.Main.Size.X.Offset - 4, 20)
+							Item.ZIndex = 9
+							Item.Text = v
+							Item.Name = v
+							Item.AutoButtonColor = false
+							Item.Font = window.theme.font
+							Item.TextSize = 15
+							Item.TextXAlignment = Enum.TextXAlignment.Left
+							Item.TextStrokeTransparency = 1
+							dropdown.ItemsFrame.CanvasSize = dropdown.ItemsFrame.CanvasSize + UDim2.fromOffset(0, Item.AbsoluteSize.Y)
+							Item.MouseButton1Down:Connect(function()
+								if dropdown.multichoice then
+									if dropdown:isSelected(v) then
+										for i2, v2 in pairs(dropdown.values) do
+											if v2 == v then
+												table.remove(dropdown.values, i2)
+											end
+										end
+										dropdown:Set(dropdown.values)
+									else
+										table.insert(dropdown.values, v)
+										dropdown:Set(dropdown.values)
+									end
+									return
+								else
+									dropdown.Nav.Rotation = 90
+									dropdown.ItemsFrame.Visible = false
+									dropdown.ItemsFrame.Active = false
+									dropdown.OutlineItems.Visible = false
+									dropdown.BlackOutlineItems.Visible = false
+									dropdown.BlackOutline2Items.Visible = false
+									dropdown.IgnoreBackButtons.Visible = false
+									dropdown.IgnoreBackButtons.Active = false
+								end
+								dropdown:Set(v)
+								return
+							end)
+							runservice.RenderStepped:Connect(function()
+								if dropdown.multichoice and dropdown:isSelected(v) or dropdown.values[1] == v then
+									Item.BackgroundColor3 = Color3.fromRGB(64, 64, 64)
+									Item.TextColor3 = window.theme.accentcolor
+									Item.Text = " " .. v
+								else
+									Item.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+									Item.TextColor3 = Color3.fromRGB(255, 255, 255)
+									Item.Text = v
+								end
+							end)
+							table.insert(dropdown.items, v)
+							dropdown.ItemsFrame.Size = UDim2.fromOffset(dropdown.Main.Size.X.Offset, math.clamp(#dropdown.items * Item.AbsoluteSize.Y, 20, 156) + 4)
+							dropdown.ItemsFrame.CanvasSize = UDim2.fromOffset(dropdown.ItemsFrame.AbsoluteSize.X, (#dropdown.items * Item.AbsoluteSize.Y) + 4)
+							dropdown.OutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(4, 4)
+							dropdown.BlackOutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(2, 2)
+							dropdown.BlackOutline2Items.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(6, 6)
+							dropdown.IgnoreBackButtons.Size = dropdown.ItemsFrame.Size
+						end
+						function dropdown:Remove(value)
+							local item = dropdown.ItemsFrame:FindFirstChild(value)
+							if item then
+								for i, v in pairs(dropdown.items) do
+									if v == value then
+										table.remove(dropdown.items, i)
+									end
+								end
+								dropdown.ItemsFrame.Size = UDim2.fromOffset(dropdown.Main.Size.X.Offset, math.clamp(#dropdown.items * item.AbsoluteSize.Y, 20, 156) + 4)
+								dropdown.ItemsFrame.CanvasSize = UDim2.fromOffset(dropdown.ItemsFrame.AbsoluteSize.X, (#dropdown.items * item.AbsoluteSize.Y) + 4)
+								dropdown.OutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(2, 2)
+								dropdown.BlackOutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(4, 4)
+								dropdown.BlackOutline2Items.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(6, 6)
+								dropdown.IgnoreBackButtons.Size = dropdown.ItemsFrame.Size
+								item:Remove()
+							end
+						end
+						function dropdown:getList()
+							return dropdown.items
+						end
+						for i, v in pairs(dropdown.defaultitems) do
+							dropdown:Add(v)
+						end
+						if dropdown.default then
+							dropdown:Set(dropdown.default)
+						end
+						local MouseButton1Down = function()
+							if dropdown.Nav.Rotation == 90 then
+								dropdown.ItemsFrame.ScrollingEnabled = true
+								sector.Main.Parent.ScrollingEnabled = false
+								tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+									Rotation = -90
+								}):Play()
+								dropdown.ItemsFrame.Visible = true
+								dropdown.ItemsFrame.Active = true
+								dropdown.IgnoreBackButtons.Visible = true
+								dropdown.IgnoreBackButtons.Active = true
+								dropdown.OutlineItems.Visible = true
+								dropdown.BlackOutlineItems.Visible = true
+								dropdown.BlackOutline2Items.Visible = true
+							else
+								dropdown.ItemsFrame.ScrollingEnabled = false
+								sector.Main.Parent.ScrollingEnabled = true
+								tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+									Rotation = 90
+								}):Play()
+								dropdown.ItemsFrame.Visible = false
+								dropdown.ItemsFrame.Active = false
+								dropdown.IgnoreBackButtons.Visible = false
+								dropdown.IgnoreBackButtons.Active = false
+								dropdown.OutlineItems.Visible = false
+								dropdown.BlackOutlineItems.Visible = false
+								dropdown.BlackOutline2Items.Visible = false
+							end
+						end
+						dropdown.Main.MouseButton1Down:Connect(MouseButton1Down)
+						dropdown.Nav.MouseButton1Down:Connect(MouseButton1Down)
+						dropdown.BlackOutline2.MouseEnter:Connect(function()
+							dropdown.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
+						end)
+						dropdown.BlackOutline2.MouseLeave:Connect(function()
+							dropdown.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+						end)
+						sector:FixSize()
+						table.insert(library.items, dropdown)
+						return dropdown
+					end
+					local dragging_selector = false
+					local dragging_hue = false
+					colorpicker.selector.InputBegan:Connect(function(input)
+						if input.UserInputType == Enum.UserInputType.MouseButton1 then
+							dragging_selector = true
+							colorpicker:RefreshSelector()
+						end
+					end)
+					colorpicker.selector.InputEnded:Connect(function(input)
+						if input.UserInputType == Enum.UserInputType.MouseButton1 then
+							dragging_selector = false
+							colorpicker:RefreshSelector()
+						end
+					end)
+					colorpicker.hue.InputBegan:Connect(function(input)
+						if input.UserInputType == Enum.UserInputType.MouseButton1 then
+							dragging_hue = true
+							colorpicker:RefreshHue()
+						end
+					end)
+					colorpicker.hue.InputEnded:Connect(function(input)
+						if input.UserInputType == Enum.UserInputType.MouseButton1 then
+							dragging_hue = false
+							colorpicker:RefreshHue()
+						end
+					end)
+					uis.InputChanged:Connect(function(input)
+						if dragging_selector and input.UserInputType == Enum.UserInputType.MouseMovement then
+							colorpicker:RefreshSelector()
+						end
+						if dragging_hue and input.UserInputType == Enum.UserInputType.MouseMovement then
+							colorpicker:RefreshHue()
+						end
+					end)
+					local inputBegan = function(input)
+						if input.UserInputType == Enum.UserInputType.MouseButton1 then
+							for i, v in pairs(window.OpenedColorPickers) do
+								if v and i ~= colorpicker.MainPicker then
+									i.Visible = false
+									window.OpenedColorPickers[i] = false
+								end
+							end
+							colorpicker.MainPicker.Visible = not colorpicker.MainPicker.Visible
+							window.OpenedColorPickers[colorpicker.MainPicker] = colorpicker.MainPicker.Visible
+							if window.OpenedColorPickers[colorpicker.MainPicker] then
+								colorpicker.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
+							else
+								colorpicker.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+							end
+						end
+					end
+					colorpicker.Main.InputBegan:Connect(inputBegan)
+					colorpicker.Outline.InputBegan:Connect(inputBegan)
+					colorpicker.BlackOutline2.InputBegan:Connect(inputBegan)
+					sector:FixSize()
+					table.insert(library.items, colorpicker)
+					return colorpicker
+				end
+				function sector:AddKeybind(text, default, newkeycallback, callback, flag)
+					local keybind = { }
+					keybind.text = text or ""
+					keybind.default = default or "None"
+					keybind.callback = callback or function()
+					end
+					keybind.newkeycallback = newkeycallback or function(key)
+					end
+					keybind.flag = flag or text or ""
+					keybind.value = keybind.default
+					keybind.Main = Instance.new("TextLabel", sector.Items)
+					keybind.Main.BackgroundTransparency = 1
+					keybind.Main.Size = UDim2.fromOffset(156, 10)
+					keybind.Main.ZIndex = 4
+					keybind.Main.Font = window.theme.font
+					keybind.Main.Text = keybind.text
+					keybind.Main.TextColor3 = window.theme.itemscolor
+					keybind.Main.TextSize = 15
+					keybind.Main.TextStrokeTransparency = 1
+					keybind.Main.TextXAlignment = Enum.TextXAlignment.Left
+					updateevent.Event:Connect(function(theme)
+						keybind.Main.Font = theme.font
+						keybind.Main.TextColor3 = theme.itemscolor
+					end)
+					keybind.Bind = Instance.new("TextButton", keybind.Main)
+					keybind.Bind.Name = "keybind"
+					keybind.Bind.BackgroundTransparency = 1
+					keybind.Bind.BorderColor3 = window.theme.outlinecolor
+					keybind.Bind.ZIndex = 5
+					keybind.Bind.BorderSizePixel = 0
+					keybind.Bind.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 10, 0)
+					keybind.Bind.Font = window.theme.font
+					keybind.Bind.TextColor3 = Color3.fromRGB(136, 136, 136)
+					keybind.Bind.TextSize = 15
+					keybind.Bind.TextXAlignment = Enum.TextXAlignment.Right
+					keybind.Bind.MouseButton1Down:Connect(function()
+						keybind.Bind.Text = "[...]"
+						keybind.Bind.TextColor3 = window.theme.accentcolor
+					end)
+					updateevent.Event:Connect(function(theme)
+						keybind.Bind.BorderColor3 = theme.outlinecolor
+						keybind.Bind.Font = theme.font
+					end)
+					if keybind.flag and keybind.flag ~= "" then
+						library.flags[keybind.flag] = keybind.default
+					end
+					local shorter_keycodes = {
+						["LeftShift"] = "LSHIFT",
+						["RightShift"] = "RSHIFT",
+						["LeftControl"] = "LCTRL",
+						["RightControl"] = "RCTRL",
+						["LeftAlt"] = "LALT",
+						["RightAlt"] = "RALT"
+					}
+					function keybind:Set(value)
+						if value == "None" then
+							keybind.value = value
+							keybind.Bind.Text = "[" .. value .. "]"
+							local size = textservice:GetTextSize(keybind.Bind.Text, keybind.Bind.TextSize, keybind.Bind.Font, Vector2.new(2000, 2000))
+							keybind.Bind.Size = UDim2.fromOffset(size.X, size.Y)
+							keybind.Bind.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 10 - keybind.Bind.AbsoluteSize.X, 0)
+							if keybind.flag and keybind.flag ~= "" then
+								library.flags[keybind.flag] = value
+							end
+							pcall(keybind.newkeycallback, value)
+						end
+						keybind.value = value
+						keybind.Bind.Text = "[" .. (shorter_keycodes[value.Name or value] or (value.Name or value)) .. "]"
+						local size = textservice:GetTextSize(keybind.Bind.Text, keybind.Bind.TextSize, keybind.Bind.Font, Vector2.new(2000, 2000))
+						keybind.Bind.Size = UDim2.fromOffset(size.X, size.Y)
+						keybind.Bind.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 10 - keybind.Bind.AbsoluteSize.X, 0)
+						if keybind.flag and keybind.flag ~= "" then
+							library.flags[keybind.flag] = value
+						end
+						pcall(keybind.newkeycallback, value)
+					end
+					keybind:Set(keybind.default and keybind.default or "None")
+					function keybind:Get()
+						return keybind.value
+					end
+					uis.InputBegan:Connect(function(input, gameProcessed)
+						if not gameProcessed then
+							if keybind.Bind.Text == "[...]" then
+								keybind.Bind.TextColor3 = Color3.fromRGB(136, 136, 136)
+								if input.UserInputType == Enum.UserInputType.Keyboard then
+									keybind:Set(input.KeyCode)
+								else
+									keybind:Set("None")
+								end
+							else
+								if keybind.value ~= "None" and input.KeyCode == keybind.value then
+									pcall(keybind.callback)
+								end
+							end
+						end
+					end)
+					sector:FixSize()
+					table.insert(library.items, keybind)
+					return keybind
+				end
+				function sector:AddDropdown(text, items, default, multichoice, callback, flag)
+					local dropdown = { }
+					dropdown.text = text or ""
+					dropdown.defaultitems = items or { }
+					dropdown.default = default
+					dropdown.callback = callback or function()
+					end
+					dropdown.multichoice = multichoice or false
+					dropdown.values = { }
+					dropdown.flag = flag or text or ""
+					dropdown.MainBack = Instance.new("Frame", sector.Items)
+					dropdown.MainBack.Name = "backlabel"
+					dropdown.MainBack.ZIndex = 7
+					dropdown.MainBack.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 34)
+					dropdown.MainBack.BorderSizePixel = 0
+					dropdown.MainBack.BackgroundTransparency = 1
+					dropdown.Label = Instance.new("TextLabel", dropdown.MainBack)
+					dropdown.Label.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					dropdown.Label.BackgroundTransparency = 1
+					dropdown.Label.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 10)
+					dropdown.Label.Position = UDim2.fromOffset(0, 0)
+					dropdown.Label.Font = window.theme.font
+					dropdown.Label.Text = dropdown.text
+					dropdown.Label.ZIndex = 4
+					dropdown.Label.TextColor3 = window.theme.itemscolor
+					dropdown.Label.TextSize = 15
+					dropdown.Label.TextStrokeTransparency = 1
+					dropdown.Label.TextXAlignment = Enum.TextXAlignment.Left
+					updateevent.Event:Connect(function(theme)
+						dropdown.Label.Font = theme.font
+						dropdown.Label.TextColor3 = theme.itemscolor
+					end)
+					dropdown.Main = Instance.new("TextButton", dropdown.MainBack)
+					dropdown.Main.Name = "dropdown"
+					dropdown.Main.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					dropdown.Main.BorderSizePixel = 0
+					dropdown.Main.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 16)
+					dropdown.Main.Position = UDim2.fromOffset(0, 17)
+					dropdown.Main.ZIndex = 5
+					dropdown.Main.AutoButtonColor = false
+					dropdown.Main.Font = window.theme.font
+					dropdown.Main.Text = ""
+					dropdown.Main.TextColor3 = Color3.fromRGB(255, 255, 255)
+					dropdown.Main.TextSize = 15
+					dropdown.Main.TextXAlignment = Enum.TextXAlignment.Left
+					updateevent.Event:Connect(function(theme)
+						dropdown.Main.Font = theme.font
+					end)
+					dropdown.Gradient = Instance.new("UIGradient", dropdown.Main)
+					dropdown.Gradient.Rotation = 90
+					dropdown.Gradient.Color = ColorSequence.new{
+						ColorSequenceKeypoint.new(0.00, Color3.fromRGB(49, 49, 49)),
+						ColorSequenceKeypoint.new(1.00, Color3.fromRGB(39, 39, 39))
+					}
+					dropdown.SelectedLabel = Instance.new("TextLabel", dropdown.Main)
+					dropdown.SelectedLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					dropdown.SelectedLabel.BackgroundTransparency = 1
+					dropdown.SelectedLabel.Position = UDim2.fromOffset(5, 2)
+					dropdown.SelectedLabel.Size = UDim2.fromOffset(130, 13)
+					dropdown.SelectedLabel.Font = window.theme.font
+					dropdown.SelectedLabel.Text = dropdown.text
+					dropdown.SelectedLabel.ZIndex = 5
+					dropdown.SelectedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+					dropdown.SelectedLabel.TextSize = 15
+					dropdown.SelectedLabel.TextStrokeTransparency = 1
+					dropdown.SelectedLabel.TextXAlignment = Enum.TextXAlignment.Left
+					updateevent.Event:Connect(function(theme)
+						dropdown.SelectedLabel.Font = theme.font
+					end)
+					dropdown.Nav = Instance.new("ImageButton", dropdown.Main)
+					dropdown.Nav.Name = "navigation"
+					dropdown.Nav.BackgroundTransparency = 1
+					dropdown.Nav.LayoutOrder = 10
+					dropdown.Nav.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 26, 5)
+					dropdown.Nav.Rotation = 90
+					dropdown.Nav.ZIndex = 5
+					dropdown.Nav.Size = UDim2.fromOffset(8, 8)
+					dropdown.Nav.Image = "rbxassetid://4918373417"
+					dropdown.Nav.ImageColor3 = Color3.fromRGB(210, 210, 210)
+					dropdown.BlackOutline2 = Instance.new("Frame", dropdown.Main)
+					dropdown.BlackOutline2.Name = "blackline"
+					dropdown.BlackOutline2.ZIndex = 4
+					dropdown.BlackOutline2.Size = dropdown.Main.Size + UDim2.fromOffset(6, 6)
+					dropdown.BlackOutline2.BorderSizePixel = 0
+					dropdown.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+					dropdown.BlackOutline2.Position = UDim2.fromOffset(-3, -3)
+					updateevent.Event:Connect(function(theme)
+						dropdown.BlackOutline2.BackgroundColor3 = theme.outlinecolor2
+					end)
+					dropdown.Outline = Instance.new("Frame", dropdown.Main)
+					dropdown.Outline.Name = "blackline"
+					dropdown.Outline.ZIndex = 4
+					dropdown.Outline.Size = dropdown.Main.Size + UDim2.fromOffset(4, 4)
+					dropdown.Outline.BorderSizePixel = 0
+					dropdown.Outline.BackgroundColor3 = window.theme.outlinecolor
+					dropdown.Outline.Position = UDim2.fromOffset(-2, -2)
+					updateevent.Event:Connect(function(theme)
+						dropdown.Outline.BackgroundColor3 = theme.outlinecolor
+					end)
+					dropdown.BlackOutline = Instance.new("Frame", dropdown.Main)
+					dropdown.BlackOutline.Name = "blackline"
+					dropdown.BlackOutline.ZIndex = 4
+					dropdown.BlackOutline.Size = dropdown.Main.Size + UDim2.fromOffset(2, 2)
+					dropdown.BlackOutline.BorderSizePixel = 0
+					dropdown.BlackOutline.BackgroundColor3 = window.theme.outlinecolor2
+					dropdown.BlackOutline.Position = UDim2.fromOffset(-1, -1)
+					updateevent.Event:Connect(function(theme)
+						dropdown.BlackOutline.BackgroundColor3 = theme.outlinecolor2
+					end)
+					dropdown.ItemsFrame = Instance.new("ScrollingFrame", dropdown.Main)
+					dropdown.ItemsFrame.Name = "itemsframe"
+					dropdown.ItemsFrame.BorderSizePixel = 0
+					dropdown.ItemsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+					dropdown.ItemsFrame.Position = UDim2.fromOffset(0, dropdown.Main.Size.Y.Offset + 8)
+					dropdown.ItemsFrame.ScrollBarThickness = 2
+					dropdown.ItemsFrame.ZIndex = 8
+					dropdown.ItemsFrame.ScrollingDirection = "Y"
+					dropdown.ItemsFrame.Visible = false
+					dropdown.ItemsFrame.CanvasSize = UDim2.fromOffset(dropdown.Main.AbsoluteSize.X, 0)
+					dropdown.ListLayout = Instance.new("UIListLayout", dropdown.ItemsFrame)
+					dropdown.ListLayout.FillDirection = Enum.FillDirection.Vertical
+					dropdown.ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+					dropdown.ListPadding = Instance.new("UIPadding", dropdown.ItemsFrame)
+					dropdown.ListPadding.PaddingTop = UDim.new(0, 2)
+					dropdown.ListPadding.PaddingBottom = UDim.new(0, 2)
+					dropdown.ListPadding.PaddingLeft = UDim.new(0, 2)
+					dropdown.ListPadding.PaddingRight = UDim.new(0, 2)
+					dropdown.BlackOutline2Items = Instance.new("Frame", dropdown.Main)
+					dropdown.BlackOutline2Items.Name = "blackline"
+					dropdown.BlackOutline2Items.ZIndex = 7
+					dropdown.BlackOutline2Items.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(6, 6)
+					dropdown.BlackOutline2Items.BorderSizePixel = 0
+					dropdown.BlackOutline2Items.BackgroundColor3 = window.theme.outlinecolor2
+					dropdown.BlackOutline2Items.Position = dropdown.ItemsFrame.Position + UDim2.fromOffset(-3, -3)
+					dropdown.BlackOutline2Items.Visible = false
+					updateevent.Event:Connect(function(theme)
+						dropdown.BlackOutline2Items.BackgroundColor3 = theme.outlinecolor2
+					end)
+					dropdown.OutlineItems = Instance.new("Frame", dropdown.Main)
+					dropdown.OutlineItems.Name = "blackline"
+					dropdown.OutlineItems.ZIndex = 7
+					dropdown.OutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(4, 4)
+					dropdown.OutlineItems.BorderSizePixel = 0
+					dropdown.OutlineItems.BackgroundColor3 = window.theme.outlinecolor
+					dropdown.OutlineItems.Position = dropdown.ItemsFrame.Position + UDim2.fromOffset(-2, -2)
+					dropdown.OutlineItems.Visible = false
+					updateevent.Event:Connect(function(theme)
+						dropdown.OutlineItems.BackgroundColor3 = theme.outlinecolor
+					end)
+					dropdown.BlackOutlineItems = Instance.new("Frame", dropdown.Main)
+					dropdown.BlackOutlineItems.Name = "blackline"
+					dropdown.BlackOutlineItems.ZIndex = 7
+					dropdown.BlackOutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(-2, -2)
+					dropdown.BlackOutlineItems.BorderSizePixel = 0
+					dropdown.BlackOutlineItems.BackgroundColor3 = window.theme.outlinecolor2
+					dropdown.BlackOutlineItems.Position = dropdown.ItemsFrame.Position + UDim2.fromOffset(-1, -1)
+					dropdown.BlackOutlineItems.Visible = false
+					updateevent.Event:Connect(function(theme)
+						dropdown.BlackOutlineItems.BackgroundColor3 = theme.outlinecolor2
+					end)
+					dropdown.IgnoreBackButtons = Instance.new("TextButton", dropdown.Main)
+					dropdown.IgnoreBackButtons.BackgroundTransparency = 1
+					dropdown.IgnoreBackButtons.BorderSizePixel = 0
+					dropdown.IgnoreBackButtons.Position = UDim2.fromOffset(0, dropdown.Main.Size.Y.Offset + 8)
+					dropdown.IgnoreBackButtons.Size = UDim2.new(0, 0, 0, 0)
+					dropdown.IgnoreBackButtons.ZIndex = 7
+					dropdown.IgnoreBackButtons.Text = ""
+					dropdown.IgnoreBackButtons.Visible = false
+					dropdown.IgnoreBackButtons.AutoButtonColor = false
+					if dropdown.flag and dropdown.flag ~= "" then
+						library.flags[dropdown.flag] = dropdown.multichoice and {
+							dropdown.default or dropdown.defaultitems[1] or ""
+						} or (dropdown.default or dropdown.defaultitems[1] or "")
+					end
+					function dropdown:isSelected(item)
+						for i, v in pairs(dropdown.values) do
+							if v == item then
+								return true
+							end
+						end
+						return false
+					end
+					function dropdown:GetOptions()
+						return dropdown.values
+					end
+					function dropdown:updateText(text)
+						if #text >= 27 then
+							text = text:sub(1, 25) .. ".."
+						end
+						dropdown.SelectedLabel.Text = text
+					end
+					dropdown.Changed = Instance.new("BindableEvent")
+					function dropdown:Set(value)
+						if type(value) == "table" then
+							dropdown.values = value
+							dropdown:updateText(table.concat(value, ", "))
+							pcall(dropdown.callback, value)
+						else
+							dropdown:updateText(value)
+							dropdown.values = {
+								value
+							}
+							pcall(dropdown.callback, value)
+						end
+						dropdown.Changed:Fire(value)
+						if dropdown.flag and dropdown.flag ~= "" then
+							library.flags[dropdown.flag] = dropdown.multichoice and dropdown.values or dropdown.values[1]
+						end
+					end
+					function dropdown:Get()
+						return dropdown.multichoice and dropdown.values or dropdown.values[1]
+					end
+					dropdown.items = { }
+					function dropdown:Add(v)
+						local Item = Instance.new("TextButton", dropdown.ItemsFrame)
+						Item.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+						Item.TextColor3 = Color3.fromRGB(255, 255, 255)
+						Item.BorderSizePixel = 0
+						Item.Position = UDim2.fromOffset(0, 0)
+						Item.Size = UDim2.fromOffset(dropdown.Main.Size.X.Offset - 4, 20)
+						Item.ZIndex = 9
+						Item.Text = v
+						Item.Name = v
+						Item.AutoButtonColor = false
+						Item.Font = window.theme.font
+						Item.TextSize = 15
+						Item.TextXAlignment = Enum.TextXAlignment.Left
+						Item.TextStrokeTransparency = 1
+						dropdown.ItemsFrame.CanvasSize = dropdown.ItemsFrame.CanvasSize + UDim2.fromOffset(0, Item.AbsoluteSize.Y)
+						Item.MouseButton1Down:Connect(function()
+							if dropdown.multichoice then
+								if dropdown:isSelected(v) then
+									for i2, v2 in pairs(dropdown.values) do
+										if v2 == v then
+											table.remove(dropdown.values, i2)
+										end
+									end
+									dropdown:Set(dropdown.values)
+								else
+									table.insert(dropdown.values, v)
+									dropdown:Set(dropdown.values)
+								end
+								return
+							else
+								dropdown.Nav.Rotation = 90
+								dropdown.ItemsFrame.Visible = false
+								dropdown.ItemsFrame.Active = false
+								dropdown.OutlineItems.Visible = false
+								dropdown.BlackOutlineItems.Visible = false
+								dropdown.BlackOutline2Items.Visible = false
+								dropdown.IgnoreBackButtons.Visible = false
+								dropdown.IgnoreBackButtons.Active = false
+							end
+							dropdown:Set(v)
+							return
+						end)
+						runservice.RenderStepped:Connect(function()
+							if dropdown.multichoice and dropdown:isSelected(v) or dropdown.values[1] == v then
+								Item.BackgroundColor3 = Color3.fromRGB(64, 64, 64)
+								Item.TextColor3 = window.theme.accentcolor
+								Item.Text = " " .. v
+							else
+								Item.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+								Item.TextColor3 = Color3.fromRGB(255, 255, 255)
+								Item.Text = v
+							end
+						end)
+						table.insert(dropdown.items, v)
+						dropdown.ItemsFrame.Size = UDim2.fromOffset(dropdown.Main.Size.X.Offset, math.clamp(#dropdown.items * Item.AbsoluteSize.Y, 20, 156) + 4)
+						dropdown.ItemsFrame.CanvasSize = UDim2.fromOffset(dropdown.ItemsFrame.AbsoluteSize.X, (#dropdown.items * Item.AbsoluteSize.Y) + 4)
+						dropdown.OutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(4, 4)
+						dropdown.BlackOutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(2, 2)
+						dropdown.BlackOutline2Items.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(6, 6)
+						dropdown.IgnoreBackButtons.Size = dropdown.ItemsFrame.Size
+					end
+					function dropdown:Remove(value)
+						local item = dropdown.ItemsFrame:FindFirstChild(value)
+						if item then
+							for i, v in pairs(dropdown.items) do
+								if v == value then
+									table.remove(dropdown.items, i)
+								end
+							end
+							dropdown.ItemsFrame.Size = UDim2.fromOffset(dropdown.Main.Size.X.Offset, math.clamp(#dropdown.items * item.AbsoluteSize.Y, 20, 156) + 4)
+							dropdown.ItemsFrame.CanvasSize = UDim2.fromOffset(dropdown.ItemsFrame.AbsoluteSize.X, (#dropdown.items * item.AbsoluteSize.Y) + 4)
+							dropdown.OutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(2, 2)
+							dropdown.BlackOutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(4, 4)
+							dropdown.BlackOutline2Items.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(6, 6)
+							dropdown.IgnoreBackButtons.Size = dropdown.ItemsFrame.Size
+							item:Remove()
+						end
+					end
+					function dropdown:getList()
+						return dropdown.items
+					end
+					for i, v in pairs(dropdown.defaultitems) do
+						dropdown:Add(v)
+					end
+					if dropdown.default then
+						dropdown:Set(dropdown.default)
+					end
+					local MouseButton1Down = function()
+						if dropdown.Nav.Rotation == 90 then
+							tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+								Rotation = -90
+							}):Play()
+							if dropdown.items and #dropdown.items ~= 0 then
+								dropdown.ItemsFrame.ScrollingEnabled = true
+								sector.Main.Parent.ScrollingEnabled = false
+								dropdown.ItemsFrame.Visible = true
+								dropdown.ItemsFrame.Active = true
+								dropdown.IgnoreBackButtons.Visible = true
+								dropdown.IgnoreBackButtons.Active = true
+								dropdown.OutlineItems.Visible = true
+								dropdown.BlackOutlineItems.Visible = true
+								dropdown.BlackOutline2Items.Visible = true
+							end
+						else
+							tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+								Rotation = 90
+							}):Play()
+							dropdown.ItemsFrame.ScrollingEnabled = false
+							sector.Main.Parent.ScrollingEnabled = true
+							dropdown.ItemsFrame.Visible = false
+							dropdown.ItemsFrame.Active = false
+							dropdown.IgnoreBackButtons.Visible = false
+							dropdown.IgnoreBackButtons.Active = false
+							dropdown.OutlineItems.Visible = false
+							dropdown.BlackOutlineItems.Visible = false
+							dropdown.BlackOutline2Items.Visible = false
+						end
+					end
+					dropdown.Main.MouseButton1Down:Connect(MouseButton1Down)
+					dropdown.Nav.MouseButton1Down:Connect(MouseButton1Down)
+					dropdown.BlackOutline2.MouseEnter:Connect(function()
+						dropdown.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
+					end)
+					dropdown.BlackOutline2.MouseLeave:Connect(function()
+						dropdown.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+					end)
+					sector:FixSize()
+					table.insert(library.items, dropdown)
+					return dropdown
+				end
+				function sector:AddSeperator(text)
+					local seperator = { }
+					seperator.text = text or ""
+					seperator.main = Instance.new("Frame", sector.Items)
+					seperator.main.Name = "Main"
+					seperator.main.ZIndex = 5
+					seperator.main.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 10)
+					seperator.main.BorderSizePixel = 0
+					seperator.main.BackgroundTransparency = 1
+					seperator.line = Instance.new("Frame", seperator.main)
+					seperator.line.Name = "Line"
+					seperator.line.ZIndex = 7
+					seperator.line.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+					seperator.line.BorderSizePixel = 0
+					seperator.line.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 26, 1)
+					seperator.line.Position = UDim2.fromOffset(7, 5)
+					seperator.outline = Instance.new("Frame", seperator.line)
+					seperator.outline.Name = "Outline"
+					seperator.outline.ZIndex = 6
+					seperator.outline.BorderSizePixel = 0
+					seperator.outline.BackgroundColor3 = window.theme.outlinecolor2
+					seperator.outline.Position = UDim2.fromOffset(-1, -1)
+					seperator.outline.Size = seperator.line.Size - UDim2.fromOffset(-2, -2)
+					updateevent.Event:Connect(function(theme)
+						seperator.outline.BackgroundColor3 = theme.outlinecolor2
+					end)
+					seperator.label = Instance.new("TextLabel", seperator.main)
+					seperator.label.Name = "Label"
+					seperator.label.BackgroundTransparency = 1
+					seperator.label.Size = seperator.main.Size
+					seperator.label.Font = window.theme.font
+					seperator.label.ZIndex = 8
+					seperator.label.Text = seperator.text
+					seperator.label.TextColor3 = Color3.fromRGB(255, 255, 255)
+					seperator.label.TextSize = window.theme.fontsize
+					seperator.label.TextStrokeTransparency = 1
+					seperator.label.TextXAlignment = Enum.TextXAlignment.Center
+					updateevent.Event:Connect(function(theme)
+						seperator.label.Font = theme.font
+						seperator.label.TextSize = theme.fontsize
+					end)
+					local textSize = textservice:GetTextSize(seperator.text, window.theme.fontsize, window.theme.font, Vector2.new(2000, 2000))
+					local textStart = seperator.main.AbsoluteSize.X / 2 - (textSize.X / 2)
+					sector.LabelBackFrame = Instance.new("Frame", seperator.main)
+					sector.LabelBackFrame.Name = "LabelBack"
+					sector.LabelBackFrame.ZIndex = 7
+					sector.LabelBackFrame.Size = UDim2.fromOffset(textSize.X + 12, 10)
+					sector.LabelBackFrame.BorderSizePixel = 0
+					sector.LabelBackFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+					sector.LabelBackFrame.Position = UDim2.new(0, textStart - 6, 0, 0)
+					updateevent.Event:Connect(function(theme)
+						textSize = textservice:GetTextSize(seperator.text, theme.fontsize, theme.font, Vector2.new(2000, 2000))
+						textStart = seperator.main.AbsoluteSize.X / 2 - (textSize.X / 2)
+						sector.LabelBackFrame.Size = UDim2.fromOffset(textSize.X + 12, 10)
+						sector.LabelBackFrame.Position = UDim2.new(0, textStart - 6, 0, 0)
+					end)
+					function seperator:Set(value)
+						seperator.label.Text = value
+					end
+					sector:FixSize()
+					return seperator
+				end
+				return sector
+			end
+			pcall(function()
+				makefolder("Example Script")
+			end)
+			function tab:CreateConfigSystem(side)
+				local configSystem = { }
+				configSystem.configFolder = window.name .. "/" .. tostring(game.Players.LocalPlayer.Name) .. "_BF"
+				if (not isfolder(configSystem.configFolder)) then
+					makefolder(tostring(configSystem.configFolder))
+				end
+				configSystem.sector = tab:CreateSector("Configs", side or "left")
+				local ConfigName = configSystem.sector:AddTextbox("Config Name", "", ConfigName, function()
+				end, "")
+				local default = tostring(listfiles(configSystem.configFolder)[1] or ""):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", "")
+				local Config = configSystem.sector:AddDropdown("Configs", {}, default, false, function()
+				end, "")
+				for i, v in pairs(listfiles(configSystem.configFolder)) do
+					if v:find(".txt") then
+						Config:Add(tostring(v):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", ""))
+					end
+				end
+				configSystem.Create = configSystem.sector:AddButton("Create", function()
+					for i, v in pairs(listfiles(configSystem.configFolder)) do
+						Config:Remove(tostring(v):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", ""))
+					end
+					if ConfigName:Get() and ConfigName:Get() ~= "" then
+						local config = {}
+						for i, v in pairs(library.flags) do
+							if (v ~= nil and v ~= "") then
+								if (typeof(v) == "Color3") then
+									config[i] = {
+										v.R,
+										v.G,
+										v.B
+									}
+								elseif (tostring(v):find("Enum.KeyCode")) then
+									config[i] = v.Name
+								elseif (typeof(v) == "table") then
+									config[i] = {
+										v
+									}
+								else
+									config[i] = v
+								end
+							end
+						end
+						writefile(configSystem.configFolder .. "/" .. ConfigName:Get() .. ".txt", httpservice:JSONEncode(config))
+						for i, v in pairs(listfiles(configSystem.configFolder)) do
+							if v:find(".txt") then
+								Config:Add(tostring(v):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", ""))
+							end
+						end
+					end
+				end)
+				configSystem.Save = configSystem.sector:AddButton("Save", function()
+					local config = {}
+					if Config:Get() and Config:Get() ~= "" then
+						for i, v in pairs(library.flags) do
+							if (v ~= nil and v ~= "") then
+								if (typeof(v) == "Color3") then
+									config[i] = {
+										v.R,
+										v.G,
+										v.B
+									}
+								elseif (tostring(v):find("Enum.KeyCode")) then
+									config[i] = "Enum.KeyCode." .. v.Name
+								elseif (typeof(v) == "table") then
+									config[i] = {
+										v
+									}
+								else
+									config[i] = v
+								end
+							end
+						end
+						writefile(configSystem.configFolder .. "/" .. Config:Get() .. ".txt", httpservice:JSONEncode(config))
+					end
+				end)
+				configSystem.Load = configSystem.sector:AddButton("Load", function()
+					local Success = pcall(readfile, configSystem.configFolder .. "/" .. Config:Get() .. ".txt")
+					if (Success) then
+						pcall(function()
+							local ReadConfig = httpservice:JSONDecode(readfile(configSystem.configFolder .. "/" .. Config:Get() .. ".txt"))
+							local NewConfig = {}
+							for i, v in pairs(ReadConfig) do
+								if (typeof(v) == "table") then
+									if (typeof(v[1]) == "number") then
+										NewConfig[i] = Color3.new(v[1], v[2], v[3])
+									elseif (typeof(v[1]) == "table") then
+										NewConfig[i] = v[1]
+									end
+								elseif (tostring(v):find("Enum.KeyCode.")) then
+									NewConfig[i] = Enum.KeyCode[tostring(v):gsub("Enum.KeyCode.", "")]
+								else
+									NewConfig[i] = v
+								end
+							end
+							library.flags = NewConfig
+							for i, v in pairs(library.flags) do
+								for i2, v2 in pairs(library.items) do
+									if (i ~= nil and i ~= "" and i ~= "Configs_Name" and i ~= "Configs" and v2.flag ~= nil) then
+										if (v2.flag == i) then
+											pcall(function()
+												v2:Set(v)
+											end)
+										end
+									end
+								end
+							end
+						end)
+					end
+				end)
+				configSystem.Delete = configSystem.sector:AddButton("Delete", function()
+					for i, v in pairs(listfiles(configSystem.configFolder)) do
+						Config:Remove(tostring(v):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", ""))
+					end
+					if (not Config:Get() or Config:Get() == "") then
+						return
+					end
+					if (not isfile(configSystem.configFolder .. "/" .. Config:Get() .. ".txt")) then
+						return
+					end
+					delfile(configSystem.configFolder .. "/" .. Config:Get() .. ".txt")
+					for i, v in pairs(listfiles(configSystem.configFolder)) do
+						if v:find(".txt") then
+							Config:Add(tostring(v):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", ""))
+						end
+					end
+				end)
+				return configSystem
+			end
+			table.insert(window.Tabs, tab)
+			return tab
+		end
+		return window
+	end
 
-_, Protected_by_MoonSecV2, Discord = 'discord.gg/gQEH2uZxUk'
-
-
-,nil,nil;(function() _msec=(function(e,l,o)local G=l[((-45+0x7a)+-#'I like gargling cum')];local Q=o[e[((823+-0x7c)+-#'amena jumping')]][e[(-#{1,{},",",'nil'}+742)]];local g=(608/0x98)/((-#[[test 123]]+((-#"cum fuck"+(((401+-0x6e)+-#[[test 123]])-0x9f))+-40))-0x42)local N=(440/(0x12e8/(-0x2a+64)))-(105-0x68)local F=o[e[(17667/0x97)]][e[(46480/0xa6)]];local p=(((0x1a7+-48)-0xef)/136)+(0x4f-77)local s=o[e[(-#{(function()return{','}end)();71;'nil',",",","}+563)]][e[((887+-0x36)+-#"Nitro Activated")]]local n=(-113+0x73)-(0x62+(-0x59-(-#"Bong"+(92-0x50))))local w=(0x18+((-0x3c+(-3301+0x667))/0x52))local O=(-#"This is working now"+(((-0xe70/(193-((0x2100/66)+-#'This is working now')))+-#"Fuck nigger wank shit dipshit cunt bullshit fuckyou hoe lol")+125))local i=((-#'Cock and ball torture'+((130+-#{83;(function()return{','}end)();",";{};'nil',13})+-60))-0x28)local b=(((-#{'}';(function()return#{('OKoHbm'):find("\111")}>0 and 1 or 0 end),(function()return#{('OKoHbm'):find("\111")}>0 and 1 or 0 end),54}+135)+-0x53)+-#[[guys Please proceed to translate D to Sinhala]])local u=(288/(100+-#{'}',1;'nil';54}))local U=(6+-#{",",{},","})local x=(((-0x5a-((-#{",";1;{},{};58;88}+501)/0x37))+-#[[test 123]])+109)local t=(-#'Dick'+(((((-0x42-(4625/0xb9))+0x7)+-#'black mess more like white mesa')+0x85)/0x3))local c=(0x13+(-0x6e+(96+-#{151,151,'}'})))local h=((0x21c/(0x85+((-0x5a72/227)+-#"I like gargling cum")))+-0x2b)local r=(0x6f+((-0xad-(-0x2b+(-0x1ee0/247)))+-#'dick cheese'))local k=(((-#{(function()return{','}end)();'}';(function()return{','}end)();'}';1;55}+134)-0x7a)+-#'Bong')local C=(-0x78+(((924463400/0xb3)/0xaa)/245))local M=((-#{1;'}';102}+799)/0xc7)local P=((((34683+-#{(function()return#{('OfkLOL'):find("\107")}>0 and 1 or 0 end),1;157})/204)+-123)-0x2b)local B=(51-(52+-#{(function()return#{('lfBpmL'):find("\66")}>0 and 1 or 0 end);1,'}';18;(function()return{','}end)()}))local S=(8+-#{31,{};{},(function()return#{('MKMlPk'):find("\77")}>0 and 1 or 0 end)})local m=(10+-#{'nil';1,'}',1;{};(function()return#{('blmhbP'):find("\109")}>0 and 1 or 0 end)})local z=e[(-#"cum fuck"+(2724-0x577))];local K=o[e[((40656/0xe7)+-#[[Fuck nigger wank shit dipshit cunt bullshit fuckyou hoe lol]])]][e[(106560/(227+-#{'}','nil';(function()return{','}end)(),'nil';(function()return#{('kMHKmH'):find("\72")}>0 and 1 or 0 end)}))]];local H=o[(function(e)return type(e):sub(1,1)..'\101\116'end)('гахисяяп')..'\109\101'..('\116\97'or'тдырегыи')..e[((74746/0x85)+-#[[test]])]];local A=o[e[(1190-0x278)]][e[(985+-#{54,",";54})]];local y=(-#{{};{};'nil',67;67}+7)-((459+((0x62+-108)+-#'Never gonna give u up'))/0xd6)local v=(((5137820/0xb9)/0xd4)-0x81)-((155-0x7a)+-#[[black mess more like white mesa]])local T=o[e[(24804/0xd4)]][e[(-#'no thanks'+(75764/0xbc))]];local a=function(e,o)return e..o end local j=(0x2f-43)*(((0x167-214)-0x57)-54)local I=o[e[(0x8ee-1155)]];local f=((0x478/88)+-#[[free trojan]])*((((52986-(-#[[Fuck nigger wank shit dipshit cunt bullshit fuckyou hoe lol]]+(-37+0x67f6)))+-#'test 123')/180)+-#'This is working now')local L=(-0x72+1138)*(-101+(-64+(0x576a/134)))local J=(-#"Fuck nigger wank shit dipshit cunt bullshit fuckyou hoe lol"+(((0x35c997/195)-9086)/81))local _=(-#[[Little kids]]+(0x53-(0x396c/(-#"me big peepee"+(5129/0x17)))))*(0x1a2/209)local D=o[e[(1048+-#{180,{},","})]]or o[e[((0x16c23/161)+-#[[Cock and ball torture]])]][e[(1048+-#{180,{},","})]];local d=(-#"test"+(((-#[[Dick]]+(-306+0x6d))+79)+382))local e=o[e[(2529-0x4fc)]];local A=(function(a)local r,l=2,0x10 local o={j={},v={}}local d=-n local e=l+N while true do o[a:sub(e,(function()e=r+e return e-N end)())]=(function()d=d+n return d end)()if d==(j-n)then d=""l=y break end end local d=#a while e<d+N do o.v[l]=a:sub(e,(function()e=r+e return e-N end)())l=l+n if l%g==y then l=v A(o.j,(T((o[o.v[v]]*j)+o[o.v[n]])))end end return s(o.j)end)("..:::MoonSec::..яшертыуиопасдфгхшхтыхгситфедгепсытугругогшхоаауршдшфяессияяяфипхшоашыуяхдодсафуешаихешфипятптгеяфсхяггпхыошшшфгуагыашдагпытеешыыятсфиупоысяфсфихрсхосрупшытуеуфспттфтдеггуаышшсрыдшыдгфтахугеыфяууыеяадрииехасииысшдддихфиоптехсхифдпоттфхдуирыеотрыггаисригтуфгаиудеофттхгопаырядефхеасуягрпштаггпттуххсофыпрыуххдтояесуаргхеасутуытыхфафиаыуипедгыпгатихригфаяуфсаитшхфопшпоуорргппфыышрдоиорхдгпятыхфроедфапртдишерфопттгштдгооегхасеяысхуаерфдхдахитеыгдпиыпшидетырихдсыуапфиреыфгпиариеетгипфысяфаферфшоатрыхшффроатсхдсриирягеаоыиафушшафрфесиыхетфыотгупсытяфштгяаыыуоиуфшдфыогауыхедфиогыпяхсситрпяртохрадуыиоеяхгафуиррсупетгяядгиарпхыеуххагуиеяеяхисхыиеегоаыышятсхрафяоыргхихрдапытрряыияусхиоотыхшыдеиуршгдоиугшсгшипфуыыггхпаяыаиесдагыгшифяхяаруошпгяостфяссуетдсидрыгггпдхифтсфесфухеыыпрягшпаырытрагспоыгшодсихфтпутуххсогоостхяидоигедгыпфффуишфеппуштдсгпхпоярыгыпгыиыерогустрашдфооерфхаоттуоохырдиыуопоашдготрфхухясоуашспптдяысгдппыыушшдхипуппррххосшдспртыдтдыудеегшашыаяхфятыиоодтшхасрфроутсхдасшядеисрттрясдеодтяхдиуппсыугеигяппреиыятхерсгхаоушыфрсхшсоиехоирепгепсаоыфхпаутшхшааурупрухысыупефгиохтпсиыояхдоошапууоауышгфипятпдешфстрсфареяффяыпдрффртпоиуеяфппепсырштссошяохпиаысешдиыгтыххпаядгтпттфяуругиарыышуддиуршгдтгхпсеусетффпуоотосооырргдаыашояттхесдуяеегяогтояопешпдридрыыешадурпрсхгутуышигшпытфххдуихяуофрихяапарихрофесдутеугыиеттяаспиаедхегехаасутшфшпхястуфшдфтохыяшрысшядпоеохттфхпогрфопштаярсдыыпфеиаяыгшедсотперашофыырхтпптдяысгдипшысяидпоошсохрххосшдшпетгяядшииешфдпигратыфшудхоотшеухрпреафгпиыятхршгфпиыестыхшофшоатрхдгоагеигпппыеясштгппиуояффруштохыыроуфдсропыиеиратдтооурохшаадпогттхспптихсхтрегтпфыуиырахяаитыхраиыхфапятпяеяхдтыгхрсяыошшдагппфушешддтяедхрдшупффдрпгтдяуиатутшоаргхисяссостехддшяудпиоршгахидшофтедаахуыешффыиаяаятхяодшдтауысшраеидррхоаууягпуфеуфхпоышяахгсдпфхоаиуяшпшфхтаиуояуфсопыаххдыогдуигрихяяошоетфтофтутшеифыарепясдиишедуатшхеасутихрхяриууррегепгххаеыишядпдааяыышшшфшхфопштаяррддхугтхатыпшедсхтпгуоеруоепфапртдтфрегсаярпшшдгоофаоарххосшсеоорфхпятшедяипрергяыфрисгхфысяыгшоодыууяпдыяяпдефяиоыушрпшфсфыоатрхдшддхпттысрыоясдтифагыхясдеоурхеотгхгсиияоятряисхояругтпфыыуяуушдфыогогуыефсррргтпфыуыхрихтаруишыфтодираытпяессфопуыпяедиорегсшарыдффдгишшгфаифипшигготыррфыгшрддоыоаыдшуффсшфхпттфяурргшпгтхсфуышыдгоисиыгштфрпртдяшпотдяхихрргдаыашоррхяясясшсфуфеуфхгсстидеогшаррышддптгахфрясрдурхфяоеяшфыряддыигрихяапуепяфиофтуххяддшыдшиаоыыягдихеофыишуфдпурфгтсфугяугпдогппгыишяшшгипдыордиашхфопшпфуорядыаяыяяфсаотттфтпгуоерасуитдхтспуаыаисрягпаеахутяяспрхяшсшуаеррххфахипешфдауыяшудыеидхоотштдшофдпштихасшифеифхоиушшыфшипрогхеяяосыугеиешхфсуыярдхшаоыягсдеофрсфаыухгсиияохтряидииегуфеппуияхорупттхеадеягсрутфпдаршудспсусипфясшуышгфиградишеффпгрхупхыошшядгтпхуяшыфпохтгяяахтиедгепгыафтышшуддоыргуышыгясшгупттфяуясффпетгяодгиирфгосеыфтгишетффпупяиырягхашуяхтятыытиаошыпиоаадфдгспоышяашиггпгыыягдыосшияшапусеасярягшпаыртгртгесяриеефтоасгпотуххсосеогыяяыдруяедгфаоуушяддетфуохтоттепгыпшедшрдяпхдфоерсхтхефтпттыфеыыярсдиыоштошусгрешохрашысдхпсясгяпртдяыяггрпшуеяидфхшфпоурххохафопптсяясрыаеыгсаоыяшуеяшгдхоотштышыстотыеяшпсыдспоыртгфаусрифтпхгоыишепгепутгягыаясдтифоаытеяфыуфрдяуаадгдшияепгегшсфихесфепфуреядоогтапетияяспдупяыдшшхешрдоошратихдпутхсыпятпяесситуфтуфхягшодаоррдрошифсопырхиспыедшиуехгохтдрофршадтрхисяупухтаяесеихеоеохгтфдруфаяпедуеаяшсеусетеуятдеидеегопуышсеугшифяопоаияешдгпттгяшсыыдрегсапргяофеофаепшттхфсугепятехгдеорефоерихяапсеидтуяштуяасоишеаехяссоухррфяаыыретдпохшипртояшсафаофыеяряяшпдпоерсришыдипшрпхтсгуоеггарогиаяыпуырахпахыпштссоетояуаияосгииряыияифефигыоурххоешдспуыяхасяияегаипыыашшодооряххияуххгпхыдетяшпыяядоисртгфгпдготтяхдиутадяугеигягдсрошеппфорыгяддураяыппыухгсиияохтряидииегуфеппуияхорупттхеадеягаиеехгтпфыуыдепгааортсруышгфихрсоияепфппяыаяиуяшшдаороыурешфсоштихысяятдяиуехгогуафуршуоургхиседиеефсптытяусхиотрхшарыдшыгтоитяхпсеусетффпутхяодшиарргдаыыхшифяоптехсдууфеугяпосеяадридтиггаиушшпшсосттхффдухеогепаыдяддуигоххяафишшсфтофтхххспишегхепдыыягфшоярахеасиушффуохтпяшсаирегтрпгыошяддоерсхтсхудшхфппшдеярсдиытягиаяыашеыфотрфхудхуоешфспртфяыеаиитегпаеыфштеаоурххосшуаерффпыыяяидеипттгсатыхшуушоотшхафрудеыгяпиыеяпегистугфаууешогыоатрхдсыугеигеппытясдуифтогхаоутшауыодтыхгфиияепгыпсыияфреихтахшаауишдтгогтияяспиеесгипфыояхдаоштдхрадупшгуппятпяефситефгапхыдшшруортгхыагудеяыепетсятсфиуехгдашыдшрдгоыыяхисяугееуфпттфяуфхиоршгхарушшыраоиыехпсеишетыупутхяодшиаррхшаыуяшифеопытхсстиреуишпоышяагридрыхтаиуушпргосыухфсуиуеоыапаыряддыигрихуапутшсфуофыоххсоиоеаиыпдыыяггиоярпхпасусшфтеохыаяшсаиседыгпгыишядпоерсхсафуошхфапшыдярсдифегипаяыпшегсотрфхгахияештупрыгяысгояряуеаеысштдфоурхяясшудерфгпыигяидяиареяяатодшугшоотшярсрхтеыфгпиияяпдеотртхуаууошогшоатрхфсыаиеигпппутясдтоуруураоушшахродтыяисиипепхппситяфдуоорохаааиышдгыогтияшспопесгфпфоуяхдоорраяоадхышггипятпятссафефгипхуашшдаодрдоеагуиеяхппетсяфсфихехепашудшрддохргегсяупеегфпттфшшсхахршгааругшыдгпртярясеусетффпутхшшдшоуррггаыугшифяостеуустиуеухшпоышшрдрстрыггаиояшпфептттяусуфсеохрпаыршудыпгрихяапитшсфтпотуыгсоишеахыпдыышадипсрпхеасиушффупдтоуясаиредгыпгыишпдпохрсхуафиушхфопртаыасдигегхпаяыпшсдссдрфхуахооешфапдтдягсггрряхсаеысшгдфгырххосшидерфдаятгртдяипрехфатыфеедхгитшхасригеыфгатыяршдеисртгфауыхешфшпитрхгсыигеигяпсыеосдтоурушхаоушшффраштытясиояепгепгыттудуошрояраауреыфышстияясппеесгтауыушододераяыадуыеофиягтпяессоуефгуааыоохдаоррдяиагуиедфпшятсятсфиуехгоааыашхддоиргяисяупеыфсххтфяхсхоаршгаадыдтфдгоитяшпсеусефффпхтхитдшодрргдахыгппфяоптеяфстуфршфххиышяадрогрыггсруятифеосттяххоухрыгшхпыряддыигрихясеуееофтохтуяхсоишефгрхрыышидиперпхестутыыфуохтоешсаиррыгыаиыииддпптрсхтсиууигфопшташысдиырпгигфыпшедспурфхуссуоояфапртдшисгиирфгпфрысштдфоурххосауаряфдпитгшигоипрыгсетыфшхдхпапахасдудппфгпиыяепдеисрфгфахыхшхфшаатрхдсгугрягяерыешсдтифрпгхахушерфрсдтыхгсаияаыгегдытшхдуихтшхшриуршдфыагтияядеиертгтфгыуешдоошттхргруышгфиаетпяедуитодгупхыоердаортохыяфуиеяфппеошятдуиурсгоарыаерхтоытшхихыупесфсдтсияудеиоасгафгыдрыфооитпхпсыуседффсуауяодаиардгдруыгшпегоптфхссыуфеуфхпоуояаддидтяггаоуятпфеостохфдсухоогшааыряддпигияхяасуееффтофтхххтыишеагрсдыыягфяоятехегдутехфуохыеяшроиредгысяыишяфтоеспхтафууршфопшыуярраиыеггиаяыпшефтоттпхусшуоршфапрыяяыепиирпгпстптштфуоуиихосшуатряапыыияидпиппггссуыфшуфпоодрхасрудрифгпиысяпешисртгфсоыхшоффоасехдсыугрпгяппыхясерифругхаоушшафдодыехгспиярпгепсыояфшфихтшхшсдуршдфгогихяяспиетсгтпфыхяхфшошаухрсгуышггшпяаояесситрхегпхуршшшиоррдхыдяафеягыпеааятсфиутшгоашуишршроыргхисяупеегтптыаяудшиотшгааруяшытгоитпхпдтусетгупудряодшиаыргдаыуишифпоптпхсфтуфеугопоыаяатфидтыггаиутшпфпостфхфгуухеогыпадхядыригтпхяапусшсушофтуххфоисеагдпдыгягяооятсшгасугшфяфохтояшддиредхяпгсушядпоетфхтафиешхрипштаярсдиыегхяаяуышедфоттфхуахудешшхпрыыяыггиирягфаефыштяооуыххосширергяпыыуяигяипрехтатуушууяоотрыосрииеыгяпиыяяпдепертхуаууашофеоаирхдсыиреихыппидясфтифрухтаопашафыодыихгсиипепухпсытяфгуихрохаааудшдшуогыпяяспидесуепфыуяхфаошрахгадгршгфипяысяессояефутпхыошшдаоррдхгагиреяфспеысятсфисехырашуршрфгсгргяясяашеефсптуфртсхошршхрардошыгяоитяярсегфетффпуушяодшоырртсаыыгшигеоптеяистадеуфхпоуряадропрытфаиуяшпфеосттяусуидеогрпауряддыорритиапусшсгуофтуяосоапеагрпдиыягдиопрпхсасфяшфгоохтояссафеедгыпгупыодпофрстшафуушхгафитаяхсдфтеггиаяусшедспшрфррахуоешфапртдягсготрягсаеусштдфосрхиосширерггпытгшядягфрегсатифшудхпштшярсриреыхгпиыяшедеотртииауухшофшохтрярсыииеишяппыешядтхпруутаоиршафрпытыоссиияепяеаыытшудуоорореааиытофыпотириспиеесхупфыушадогярахрадиишгфипдтпушсситефгупхыошадаохрдхиагииеяфппитстпсфихехшоашыашоддххргресяопеефспфтфяссхояршяаарыдшгдгпятяоасеуфоеффаштхягдшиарргдсдыгеяфяпттехдстпфеуфхпгышшхдрхпрыхгаиуяшхфедтттххсуошеогшарырппдыигришяапуеетфтпутутясоореаграуыыоддиоярпятасутеофуяфтояшсаоыедгыааыиогдпоерсхтафууеофопфтаяысдоыеггиауыпифдсофрфяогоуоеафадстдяысгпиыггпасысшфдфхерхяасшуаеффдшитгяидяосрегсахыфиыдхоотшядсрудршфгспыяяпдеофртгфсрыхиифшоатрхдсыугрягяауыеяфдтофругхагушишфрпытышясииярегефрытяфдупхрохшсруреыфыхатишеспиерыгтхдыуяхдопроехрсиуыусфипятпштяшитрпгухгыошшдапырдхыссуиышфппетсятсфиурогоагыашыддпыргхисуупаефспфтфшосхиорагашиыдшыдгаитяхпссусефффпфтхеодшиардгдагыгашфяпптехссауфеффхашышрадридрсггеруяаофепфттхфсхухсыгшпаыреддхигтяхясеуеыдфтпхиеххдеишушгрпдыыеядиояттхеяаутшффуаштояшдуиросгыпгыишядпоеттхтспууешфоаштаярдеиыиргиапыптедсоттрхуепуоыдфасртдяыдиииругпааысртдфоутохосауастфдпиадяидсипругсатыфшугуоотахасгудеуфгдиыяяпдпистпгффдыхеофшоатахдггугепгяасыеясдфифдргхаоушрафродтгхгдяияуагеафытяффяихсухшааурегфыогыеяярииеесгтахыуяхфтошсохрадуышгфипяыеяедиитехгуахыошшфшораихысиуирешепеытятхыиуехгодшоошрфыоытихишдупртфсптыияутшиоршгасыыдшыфпоипххпсеусруффпуысяошхиарргдсиыгшиффопашхсстуфеуфхпоыаяафяидриггсиуяшпфпоспсхфсхухрагшпаыдядхфигрихядпуешсффофтхххетишрдгрпдыхягеуоярпхесфадшфгшохпыяшсаирргеспгуршяеооерсхтсхуушхгыпшисярсдиыеггиаяуешефоотрххусхуоешгшпрддяыдииитегпаеутшттшоурххофшуаергыпыыияидиипыегсатуушуфооодсхадрудеыгыпиыияпдсисутгфаууушотфоаасхддиугеигпппфхясдтифыухпаоуашафдодоухгдппдепгдпсосяфдуихтахшааугшдртогтияядсиеесхяпфсыяхдоошрахрадугшггрпятсяедситефгфпхпфшшфрорудхыагугеяырпеоуятффиуеххшашушшрфтоыыгхисяиееегтптфгяудшфуршхыарушшыдгоитяшясеитетгопуыяяохшиаррхтаыирширтопыехсстиыеушопоыряафыидрыхиаигфшпфеосутхфсуиоеогапаптядфиигрихаапгяшсфтофыоххсоидеаушпдыыягфпоярпхгасгешффуохтояшсаидедхшпгыпшяфпоерсхдаффшшхгшпшыдрдсдигегшхаяыпшегссерфххахишештупрыгяысгошряусаеысштфхоурхярсшдперфдпыуяяидяоыреытатыфшугшоотшяисрдсеыфгпиыяяпдеотртхаауушшогшоатрятсыдыеигпппутясдтоуруеиаоушшахродтыяисиипептгпсууяфдуопроыяаауршдгифутиясспсхесгтпфуоыыдоофраыеадуышггппятпяхссаыефгупхыошшдаодрдяеагупеягппетсядсфхуеххшашудшрддогргуссяупеехспттфяхсхошршхшаридшыдгпятяяесехыетгфпутхшядшошррхыаыогшифяпштеиистсяеухшпоышшрдряпрыггаиояерфептттяусусяеохрдуыршудысырихяапитшсфтпотуыгсоишеахыпдыышадифхрпхеасутшффупотояфсаиыедхыпгыишодпдирсхфафпушхфопптаифсдсяегяиаяыпшсдсодрфхгахооешфапдтдягсгяорягсяяысшхдфоурххосшуаесфдпгтгшедяиарегссуыфшудхоптшхасрудеффгпиыяетдеисртсфсыыхшофшхдаоуфеафрпаытфгдяихруфгатыеяфрешафродаышыхфршгпфаоыырядяышотситгапиеуфыогтитишггуигтпяхддиоесгуисхпадуышгшаххсуухяшфрхяхепхыошшшрхшсеутшпддирргятдшупехрпругоашыауыршхеафусшыфдсггепттфяушыффптыгшедгтоыгаотяхпфегсшяышфугсшпдшиаррргяадгоррпгдарухшпфшипыряидрусеагшпгсиауыхроисррсирфуяухеогшфашфиоодргшохядтуешсфттффсыаояршпегипдыыягеггшауыиугуфшффуохпсуеряфоипртгепдтргтоерсхтефшрпгпыышяшярсдиыугапштяхыеххоарфхуахффохтахтахияпдудехготшуффшрфтушягесяупуегиятдытипгясршгагрпыстиитоуохдсрудеырффгефяддеисртысясфуфдфшоатрхдддргфааяшдыеясдтифругхпоаярыфродтыхгсиияепеехтытяфдупшишхшааурррфыогтиряериеесгтафыушддоприрхрадуырыфипятпеедыитефгупхыоешдаопогхыагуиеифппртсяысфиарггоашыашаддоургхссхупеефсгдтфяисхиопшгаарыдшыдгоптяепфсусетффсятхяпдшодрргдауыгшхфяоптешсстуфеифхппышеедрогрыггапуяесфеосттяхсуухесгшпфыряддыпярихяафуеехфтофтуххсоишесграяыышядипярпхеасутрофупятошрсаирефгыафыишядпаерсхтагууеяфопыташысдиыршгиааыпшедсотрфхусяуоетфапытдеысгииршгпарысшсдфаурххосеуаетфдпатгеидяипрргсаыыфшддхпатшхасуудрофгпиыяяпдеисрогфауыхшофшоатрхдсоугесгяппыеясдтифригхаоушшсфродтыхгсоияепгепфытрфдуихрпхшдтуршффыаятияяссиерргтпфыуехдоошрдхрагуыруфиаетпяесгиттугупхыоердаортяхыспуиеяфпаттсятдеиутыгоашыашрддоытяхисыупетфсаттфяудяиотдгааыыдеидгоитехпдшусетффсутхяодриарыгдапыгепфяоптухссгуфеуфхпоышяадыидрпггапуярпфеостухфсоухехгшсаыряддиигрпхяагуерсфтофтоххсаишряграгыыягдсоятдхеасутшффуохтфяшссиредгыпгыишядфоетяхтафуушхфопштдярсдиыехгиаяыпшедфотрфхусшуоышфапртгяыфоииршгпстысштфяоутихосшуатрфдпыышяидриптагссуыфшуфроотфхасрудрифгпиыыяпдсисртгфсоыхшофиоатыхдсыугеигяппыыясдаифрогхсоушшафыодуяхгсаиярсгепсыияффыихрохшдауршдфоогтаяясфиерфгтпфысяхфеошрахрадуышгфапятгяесфиттфгупхысшшдфортрхыдгуиеяфдпетгятдеиутхгоашыфшрдхоыттхидеупеегяптуяяусхиоршгааруешыфяоитяхпсеусетгепуыыяодшиарргдаыушшифяоптрхсстуфеугепоышяадыидуыггаиуршпгдостыхфдоухеогыпаысяддыигыихяапуушсфоофыгххдаишеагопдурягдиоятсхеасуашфгсохтояшддиредгдпгуошядпоерсхтафуашхфхпштдярддиыеггааяитшедхоттххуахудешгппртдяыфгиирягфаеыхштфшоуышхосшияергупытгяидяипрегхатуршуфшооушхасрияеыгепиыияпгеисртхшаууршофуоаурхдсыиееигтппыоясфуифрухыаоитшафродтыхгсиииепгыпсытяфдуихрохиаауашдфыогтияяспиуесгтпфыияхддошрахрадуишгфопятпштсситефгипхыошшдаоррдхыагидеяфппешсшысфиуехраяудаихрыгопхусшыдфиытхярсхуиеуфффсгаарыдшыхшхуфдрпшаугетффпусфуфротарагдаыыгуфрыгдсууаеуаяыггядфотяадрпдфогядшаягпфуосттхфшффяпытуоыыряддысгседфпуаепягяофтуххяшфхаяыеяисаушедхеахыишфпоетфуохтоыршхгяпсыпярдатыысошраррооигсфпоефытярсдиыиытдштадиирфхаауыпштсиешфапртдяысгиииягааеысштдфоупсшххшрсерфдпыдгуихшеииеуяадыфшудхфсаеияшоспитеефдхпяхдеисртуештдхипртхыоыхдсыугеигяпптетапторругхаоатоптяхпосыфрпиеепгепссрытуеогрохшаафыоштуярадирефсиппыояхсиифесгууахрадуыряшяпятпяедхитефгудхдешшдаортдхысруирешепетсятфшиуехгодшутшрддоыргхидяупеохдпттфяуггиорегаарыдшпффоитяхпгшусеыффпуахяодшиарргдаиыгтияиоптехсдууфрсфхааышяадтидрпггаиуярпфеостыхфсиухесгшадыряддиигрххяапуееффтофтпххдуишеаграгыыягдсоярсхеасутшффуохтпяшсгиреггыагыишядпоетохтагууршфопштсярдриыеггидяыпшеддотргхуссуоррфапртхяысхиирягпаеысштдгоутехосруатрфдпытхяидшипрдгсдтыфшуфяоотехадуудтыфгпиышяпдрисрфгфсоыхшофтоаытхдсыугеигяппыуясдтифругхаоушшафуодтпхгсиияепгепсыыяфдуихрпхшаауршдфуогтияяссиеысгтпфыияхфаоштххрсгуышгфппятфяесситтфгупхыашшддоррххыдяуиеяфдпеыаятсфиутшгоашыгшрфеоыргхидеупеегяптыояусхиоршгаарыгшыфроитехпдеусетфгпуыдяодриатыгдаыуяшифиоптехсфтуфеугшпоыряадхидтиггаиутшпфросттхфсуухеогрпаыияддиигыихяапутшсфуофыяххфоишеагыпдыиягфаояыпхеасуушффоохышяшддиредгппгуошядпоерсхтафусшхфппштаярсдиыеггсаяыгшедсотрфхуахуаешфапртфяыдеиирягпаеыфштдгоурхяасшуаерффпытгяидяипрегсатиашудхоофяяусрудеыеияыдуиоефгяоиыешофыифтрядыехдсыугпптыяадииярихшисыфшдфристшгхаагпггияепдедхиуояяудярсхшаауроараяытоисспиеесефсяоытхыосорахродхроапяыяифяпсситефроятдыоярггоахфхстуиеяфпяиспитшгфппапшааыашрддфопхуфшысуишшхфпихшрдриоршгаяасфоеррхяфапетсятсфиутхогдддшиарродрхуохишяеутехсстуфеуфхоопяяшдиидрыггшгдшоетуиытгхфсуухухтуягауишрихтаяырягидшффтофтуыгххртрягрпдыыышругфаурояаодяифыогоистпрххудтгпгыишядпыыштпыгфуишхфопштаярсдиыугшдасыпшеесдшихтдгхыртффапрддгеыофихяидаррпхрддоышгяиуягдургпаутгяидядспиысшядуипряхдауыгяугяптыяхосиугадоертгфаусыифртхгсеуггорхеигяппыегояхяпиухяфхушшасряеярыфхифпшргшпапргясыхяхотдаауршдгидитияяспоеесгтпфоуипдоошрахдадидшггпдптпяессотефгупхиошсдаоррдхыагияеяфхсртсятсффяехгпашыашрфяптргхисядреефдпттфуусхиоршгаарыгшыхгаптяхпсеиоетфхпуушяодшисрряуаыыгшихяоптехдстугеугрпоуряадригрыяяаиуяшпгтосттяясуосеогшпауыяддыоерихдапуешсфтофтуяясоиыеагыпдуыягдиоярпяуасуышфгоохтояесаифедгыпгиишядпоррсхыафиышхгапштаяусдогеггиаяыпшедсоырфхпахуаешхапртдяусгиоряхяаеисштдфоирххпсшисерхдпытгяодяиарегдатухшудхостшяесрудеыфгпиыяяфдеисртгфауыхшофшофтряясыугеигяппыеяддтифрухяаоиршафрофтыядсиияепхтпсытяхдуоарохшаауршдфыохтияеспиресгтпфыушядоошрахыадпышгфипштпяхссиуефхопхыошрдапфрдхыагоиеяфппттсяусфиаеххаашыашуддосргхисяисеефспотфшссхиоршхдарыдшадгпфтяхпсеусетффпотхяфдшидррхдаыыгшофяпфтехфстихеуфхпаышштдридрыягаиуяшсфеофттядсуошеогшпгыреыдыигрихяапуешффтпштуяшсопшеагрпгыышядиоирпшеасутшхфупштошесапредгыаяыишедпоррсяуафууерфопптаярсдиыеггиаыыпшрдсотрфхуахуоеыфапотдяысгиирягпатысштдфоирххосшуаеыфдпытгяпдяапрегсауыфердхоатшядсрудеофгсшыяяпдепсртгфапыхшсфшогтрягсыугесгяадыеясдтохругхафушшхфродтышясиияехгесуытяфдуихрохшафуреефыпятишяспиеефгтсшыушедопррахрахуыеофипятпеесситрягуаеыоеядапырдхысруирпфппетсятсфиурегоауыашыддаыргхисрупеыфспстфеусхиортгаауыдеудгаитяхпсыусеиффпитхшадшиарогдафыгшифяоптехссауфеофхпоышяадридраггафуяшпфеосттхфспухеогшпсыряддыиграхяапуешффтсфтуххссишригрпгыыеядиоярфхедыутшффуахтояшсгиррягыаеыиеедпоетяхтдауушхфоартаярдеиыршгиаяыпетдсотттхудиуоешфапртдяыдеииригпатысетдфоутеходыуаеифдаитгяидтипрдгсатыфрудхоотыхасиудртфгапыяяпдоистфгфауыхшофшоатихдссугепгяспыеясдоифрагхахушрафродтпхгссиярагессытяфдаихрдхшасурегфыогтфяядшиеесгтпфыуяхдхошрфхрадуышгхыпятхяедеитефгупхоышшдгоррдхыахуиетгопетсятсхиурягоашудшрддоырххисяупеефспттфяудииоршгашоыдшыдгоиффхпсеусетффпусхтосоигрргдаыдяпяттггрпяистуфеуышгдсуиырсхыпдтршддфуытояшттхфсуухеогшоапетядсигрихяшдфуофрфхсафшпссишеагряхдаиярдотрпхеасдиоырияшуаяшсаирргшгпгыашядфоерсхтафаишхфспштфярсфиыртрпаяыдшефяотргхусяуоеыгппртдяыдрииршгпаууаштдфоутихосеуарышыпыышяидтипрегсатпгшуфеооттхастудеышшпиыряпдтисртгфсоаишофтоатохдсыугрптшппыуясдыифругхсаушшафоодтахгсиияепгепсыаяфдуихрохшсдуршдфдогтдяяспиеехгтпфысяхгуошрсхрадсашггяпятфяесситрхяяпхуешшфяоррдхыдгуиеягрпеыыятдыиутхгоашуышрддоытыхисяупеегоптыыяусхиоршгааруашыфуоитяхпсеусетгопуыфяодриаыргдаыупшифсоптыхсстуфеугапоыряадыидрыггаиусшпффостихффуухеогдпаыгяддиигрихяапудшсфуофтоххсоишеагипдыгягфшоярпхеасуфшффпохтаяшфаиредгопгуяшядсоерхедафусшхгупштсярдгагеггдаяыфшедсотрфрыахуфешфспрыяяысгаарягфаеыфштдфоурхяасшуаерффпытгяидрипрегсатиешудхоодряесрудеыршходуугяхдаиоредгыхшофшоатрхдаыаффшшрппыеесуиухыяехттиешафродпиуреифдпетыхддоиееафеадуяшддторраоыыуяяспиепфтпягдситрсхыихушеяфиихтыхрагфесхитефгуяуспигехпфтрхыагуииургхысхирехапяяиааяыпыеаипффдсиогупеефсфтдоградсофахуарыдшышихысууошффяиитеяодыуфрроиругдаыыгоырыяяшхяыстуфеуеухфдыыфеоггасыияадыуофеосттхффпфгдтешоыыряддыигритдфяаеепфтофтуххсоишеаерхсыыпядпоярпхеяаасиофдохтояшехгшпдтуяшдеаддхоерсхтхяфыодтыфиапхссдиыегуияяоадяяспшттхуахуоиррхяяссипергаушгпаеысеуяуоурхходеуаерфддысояидяипрргсстыфеояооотшхадтудеыфгсиыаяпдеисртгфаиыхшгероатрхдсдугеогяпаыеяхфрифругхахушшсфрпяытхгсиияыпгепдытяфеуихрохшаауршгфысгигяяспиеефгтаеыуешдоошрсхрсруышгфисятпяесдитеггуааыоердаорргхысиуиеяфпаттсятдяиурфгоашыаеыддоытехисфупеефспттфяудяиорыгааыыдеыдгоитяхпдшусеыффаотхяодеиарпгдаыыгрифяоптрхссыуфрефхааышяадуидрпггаиуяшпфеостыхфспухеагшсаыряддуигрохясгуерсфтофтиххспишрфгрсдыыягдооярахесыутехфуохтсяшддиредгыпгыишядфоерсхтафуушхфопштфярдяиыеггиаяыпшеддотрфхусяуоешфапртфяысгиирегпфеысштдгоутшхосууарыфдпыыяяидиипрегсдтыфшуфшоотрхасгудрифгпиыряпфуисртгфсоыхшофыоатухдсыугрпгяппыиясддифругхаоушшафыодтахгспиярпгепсыыяффыихрахшсдуршдфиогтфяяспиетсгтпфыояхдаоштухрсгуышгфспятфяесситефгупхыашшдгорргхыдгуиеяфспетфятфеиутхгоашыдшрдгоыышхифяупееффпттхяудпиотргааруяшыгяоитяхпсеусетгепуыяяодшиарргдаыуешифыоптехсстуфеугшпоышяадтидрпггаиуяшпфтостыхфсуошеогшпаытяддыигрихяапуешсхшофтуххгфидеагрхдпеыяшфдятухыасутшфттхтсхсидриредгыхшсооуегдхоарохепотияхпштагрхяпиашеиееуяшедсотохысшдфипырхяуиршусгиирярсяидсояругпаяудшудгиуыяятдяуоеифгаигфатыфшуегдхапяясрудеыыряыдяуаеыгухсгфдяуышофшоаоуусеефсуфрхыяршяадрыдтыпгеаашфгяаодтыфгтыфдгеаетыытяфдушхфехсоаарышсхофтурхудтссиетпыфшяхдоошоряуфсаыгефипятпяесситефеухсотшшдаяршпохягеиытгяпетсятшрфспеыдшяддтуфаоыргхисятууфуифтсуяусхиоршгаартдытдгостяхпсегеоытуяаиирхдшиашруеурсфыияыоптехссттяххояфоштштдридрырыядфтудрихфсауушпфттхгыпаырядедфхатыысихдстуфеуфхпоишсяспгхпдыыягшяггахушшудпиярсяшсгууедхырсгыпгыиоеегхрсяыпеяфауттуяысдутеафопротоаыошшяаыиедуиухдтешфапрыгргсгииряхяаеысштхфхярххосшуфергыпыуятядяипрехеатыфшугхпетшхасрудеыгшпиыуысдеисртхтаууяшофеоатияссыугеигиппырясдоодругхаосдшафтодтыыгсиияепгепсыуяфхуашрохшааиишдхшогыпяяспиресхупфыуяхгоошрахтадуушгфппяысяессиуефхтпхыошшфдоррдхоагифеяфппеыфятсфиаеххыашыашрддоыргхосяуфееффптыфяусхиоршхаарыфшыгяоитяхасеотетффпуухяодшисрргфаыиушигеоптехгстиреуфхпоышяадрифрыхшаиуешпхеосттхгсуияеогупаиряддыихрихшапудшсхтофтуяясоиееахгпдуиягдиоррпхаасутшффуохтояысаиредгыпгыишядпоырсхоафуушхфопштаятсдиыеггоаяусшедсоырфясахуоешгдпртдяисгпшрягпаеысштдфоирххасшусерфдпытгяодяипрегфатофшудхоптшягсрооеыхяпиыяясдеофртгфауихшофшодтрхгсыияеихеппыеягдтопругхаоиршафрпятыххсиияепхтпсытшедупярохшаауршдфыпятияыспитесхтпфыушядопшрахыадиишгфипетпшссситефяупхыошрдаоырдяфагипеяфппутсяасфиуехгоашыашыддопргхпсяопеефспутфяосхифршяаарыдшидгоптяярсеосетффпотхяадшпыррхгаыыгшсфяпштехсстуфеуфхпфышясдридрыггаиуяшффепяттхфсуухеогшпдыряддыихрихяапуешффтофтуяшсоашеагрпгыыеедипдрпятасутеяфуаштояшсапредгыашыишрдпотрсяуафууерфоаотаярсдоиеггиаыыпешдсотрфяоахуоеифааутдяысгиирягпаыысшадфоорхяосшуаеыфдаытгяадяосрегсаиыфехдхоотшшасрудеофгпаыяешдеофртгфасыхшгфшоатрхдсыугеагяпгыеяфдтпфругхасушшффрпштышгсиияедгепгытшидупхрохшафуршхфыаптишеспиерягтаыыуяхдоошрахрсеуыеяфипятпяесситрегуаыыошшдаоррдхысшуиеяфппртсятсфиурегоашыашыддсыргхисрупруфссятфшосхиорыгасыыдшыдгаитяхпсуусеоффпотхшадшиарогддеыгшифяпстехссауфеафхпоышшддридрдггсеуяшпфеосттхфсаухехгшпдыршддыиграхяспуешхфтпхтуххсдиштргрпдыыегдиоярфхеахутрыфуаштояшдяиррегыпгыишядпоерххтсрууешфосштаярдяиырегиаыыпредсоттшхусруоесфасртдяыдеииртгпсфысеудфоутыхоспуаерфдпытгяидиипрыгсатыфшугфоотихасаудеыфгпиифяпдуисртгфаиыхшдгяоатрхдсиугеогяппутясдтифригхаоушшафродтыхгфеияепгештыышафяихрохшхшдопяеохрспиуеефыпяояатыуяхдофрпхуяшсфпортасотпяесситттсуыешоудддоррдхыяфагуеаепштаеруушгаееосдгдшедсдтиупыыоепшахдпттфеурхутаыеашоыхшыдгоиагыгепгшшпфдпыггшаиггахрпыстыгшифяхсаиудепфеппырффсхигрыффарышядхдшффеосттутшифдофтпаяыряддыхраыуяяадыоуггпттуххсодиохтушядтояхаяхтехеасутиярияыафтгяпсиишшогдыфшядпоеигуршафруырипхтаярсдфытыефушшпахсыоррдрытоисатшарфтдяысгридыттуашсеедфоурхиоыггпгяпдршыаяидяиписыпшаддошртфсауудепфшпихппиыяяпяетыаястууипепфшоатртгшафгпртпхдсрихепгшопуршифрисрахшдогосуухуогфяадстфтпихрохшаауршддыдфтояяспиеесгтпфыутхфуошрахргдеипеоффяаеяесситрхшхпхыошшдхоррдхыфгфшеяфппеыаятсгиутшешашыашрфшоыргхифяиреефспттфяудгиорирдарыдшыфыоитшхпсрусеогдпутхяодоиартгдапуфшифяоппахссыуфеурхпоышяадридриггфиопшпфеосыфхфдшухрагшпаытядфригрихядпуешсфыофтиххдшишрдгрпдыияггеоярпхесфутшффпохыаяшсаиррггыпгысшяфроерсхтафуушхфппштгярсгиырггиаяыпшегыотргхудшуоешфспрыояысгииыягпаеыдштдгоутшходруаерфхпыуыяидяипрегсатыгшуфеоотрхафрудеыфхпиышяпдыисытгфаууяшофеоаырхдфыугеигшппырясфпифтогхаоутшагяодтыхгсиияепгупсытяфдуихрохшаауушдфпогтияяспиеесгыпфыуяхдпошрахрадуушгфипятсяегситефгипхишшшфыортгхыагупеягипетсятффиуехгаашыдшрфыоыыяхисяудеефхпттфяуфшиоршггаруешыдгоиыехпсеияетгтпутхяодшиаррггаыуршифеопыехсстугеухппоыряафыидрыхяаиудшпфеосутхфсуишеогрпаыыядфиигрихтапипшсфтофтуххсоиреагипдыияггиоярпхтасуушффпохуояшсаиыедгипгуишягпоерсхуафуошхгфпшыдярсдипегхтаяыпшедсотрфхсахупешфапртдяысгисряггаеысштдфоурххасшуаерффпытгяидяисрегсатыхшуххоотшхдсроыеыгппиуеяпдеигртхсауыхшохшоатрххсыишеигпппутясдтошруяыаоушшагыодтыярсииоепгепсууяфдуоырояеаауршдфыогтиярспиоесгупфууяхдоорраяфадуошггппятпяыссояефгупхиошшдаоурдхоагупеягспетсяпсфофехгоашыашрддооргхдсяусеехспттфяпсхисршгфаридшыдгоатяхдсеисетхфпутхясдшифрряшаыияшифяогтеяостуфеуфхпоышшядригрыггаиуяшпфепяттярсуухеогшпаыряхдыигрихшапуешсфтпятуххсоиреашрпдыышшдиппрпхфасиушффупртояхсаиредяыпгыиштдпоурсхфафиошхфопуташусдиыегхпаяыпшодспдрфхуахиаешфапатдшпсгиирягпаеысшодфофрххасшиаерфдпотгешдяифрехфатыфшадхпттшхасродеыфгпсыяяфдеифртххауыхшгфшаштрхдсыугеигяпфыешшдтихруяхаоушшгфрпятыяшсипяепгепхытшшдуохрошшаауреяфыпетишыспотесгтарыушддоошрахрадуыеыфипртпяесситефгуаыыошодаоррдхыагуиетфппетсяысфиаехгоашыашыддоургхидеупеефспытфяусхиоршгаарыдшидгоитядасеусетффпутхяодшутрогдаыыгоирргаагуифеуфеуфхааппяадыидруггаиуяесшаостихфсиухеогшадодяддпигрпхяапуеешфиофтсххсоишесграяыыягдпоярпхеафутшффуохтаяшсаиредгыпгыишядсоерсхтсяуушхфопштдярсдиыехгиаяыпшереоттшхусшуоеефаппигяысгиирдгпарысшыдфоатгхосшуаехфдпутгясдхипрегссгыфшидхогирхасрудртфгпоыяяадеихтргфауыхеифшостряядтугеигясрыеяддторуогхапушедфрофтыхгсиитрогепсытшхдуоярохыспуршдфыаотияшспиептгташыушшдоотрахршыуыерфипртпятссиарегуарыоесдаотрдхаагусехфппетсшгсфииехгояаыашиддоиргхасяупосфспптфяпсхиаршхяфыыдшпдгаетяхасеияетгшаытхяодшпырргфаыыгиффяофтехсстуфеуфхфеышягдрифрыггаиуятдфеохттххсуухеогшадыряддыихрихяапутшдфтофтуххсоишеагапдыыягдидырпхеасуышффуохтояшсаиредгыпгыишядпоерсхтафуушхфопштаярсдиыеггааяыпшедсотрфхуахуоешфапртдяысгиирягсаеысштдфоурххосшусерфдпытгяидяипре");local s=((-24+0x74)+-#[[Cock and ball torture]])local o=116 local l=n;local e={}e={[((801/0x59)+-#'cum fuck')]=function()local r,n,a,e=F(A,l,l+p);l=l+_;o=(o+(s*_))%d;return(((e+o-(s)+f*(_*g))%f)*((g*L)^g))+(((a+o-(s*g)+f*(g^p))%d)*(f*d))+(((n+o-(s*p)+L)%d)*f)+((r+o-(s*_)+L)%d);end,[(-55+0x39)]=function(e,e,e)local e=F(A,l,l);l=l+N;o=(o+(s))%d;return((e+o-(s)+L)%f);end,[((58-0x2c)+-#'dick cheese')]=function()local e,n=F(A,l,l+g);o=(o+(s*g))%d;l=l+g;return(((n+o-(s)+f*(g*_))%f)*d)+((e+o-(s*g)+d*(g^p))%f);end,[(29+-0x19)]=function(l,e,o)if o then local e=(l/g^(e-n))%g^((o-N)-(e-n)+N);return e-e%n;else local e=g^(e-N);return(l%(e+e)>=e)and n or v;end;end,[(88-0x53)]=function()local o=e[(60-0x3b)]();local l=e[((2816/0xb0)+-#[[Nitro Activated]])]();local r=n;local a=(e[(0xc0/48)](l,N,j+_)*(g^(j*g)))+o;local o=e[((129+-0x5e)+-#[[black mess more like white mesa]])](l,21,31);local e=((-n)^e[(-0x36+58)](l,32));if(o==v)then if(a==y)then return e*v;else o=N;r=y;end;elseif(o==(f*(g^p))-N)then return(a==v)and(e*(N/y))or(e*(v/y));end;return Q(e,o-((d*(_))-n))*(r+(a/(g^J)));end,[(0x16e/61)]=function(a,r,r)local r;if(not a)then a=e[((-26+0x56)+-#"Fuck nigger wank shit dipshit cunt bullshit fuckyou hoe lol")]();if(a==v)then return'';end;end;r=K(A,l,l+a-n);l=l+a;local e=''for l=N,#r do e=z(e,T((F(K(r,l,l))+o)%d))o=(o+s)%f end return e;end}local function K(...)return{...},I('#',...)end local function A()local a={};local r={};local o={};local c={a,r,nil,o};local l={}local x=(-#[[cum fuck]]+(0x57-63))local d={[((1725/0x4b)+-#"I like gargling cum")]=(function(o)return not(#o==e[(434/0xd9)]())end),[(-#"big hard cock"+(((0x1acb-3439)+-#"Bong")/0xf4))]=(function(o)return e[(-0x5b+96)]()end),[((186-0x74)-0x46)]=(function(o)return e[((0x2e-36)+-#[[Dick]])]()end),[(-123+0x7d)]=(function(o)local l=e[(-107+0x71)]()local o=''local e=1 for n=1,#l do e=(e+x)%d o=z(o,T((F(l:sub(n,n))+e)%f))end return o end)};local o=e[(0x40-63)]()for o=1,o do local e=e[(120-0x76)]();local n;local e=d[e%(-#'Dick'+(-0x79+138))];l[o]=e and e({});end;for c=1,e[((144-0x70)+-#'black mess more like white mesa')]()do local o=e[(0x5a-88)]();if(e[(-0x2f+51)](o,n,N)==y)then local r=e[(-#'test'+(0x44-((3600/0x30)+-#"Nitro Activated")))](o,g,p);local d=e[(0x3f+-59)](o,_,g+_);local o={e[(0x1a-23)](),e[((0x532/95)+-#'free trojan')](),nil,nil};local i={[((0x3e9/77)+-#'me big peepee')]=function()o[i]=e[((0x8b-117)+-#"This is working now")]();o[B]=e[(141/((-119+0xe1)+-#"Fuck nigger wank shit dipshit cunt bullshit fuckyou hoe lol"))]();end,[(-0x2e+47)]=function()o[u]=e[(20-0x13)]();end,[(119-0x75)]=function()o[b]=e[(211/0xd3)]()-(g^j)end,[(88-0x55)]=function()o[O]=e[(-23+0x18)]()-(g^j)o[B]=e[((-37+0x30)+-#[[test 123]])]();end};i[r]();if(e[(-#"Bong"+(112+-0x68))](d,N,n)==N)then o[t]=l[o[k]]end if(e[((144+-0x4c)-0x40)](d,g,g)==n)then o[w]=l[o[u]]end if(e[((0x1a4/5)-80)](d,p,p)==N)then o[C]=l[o[M]]end a[c]=o;end end;c[3]=e[((0x58+-75)+-#'free trojan')]();for e=N,e[(-#[[I like gargling cum]]+(112-0x5c))]()do r[e-N]=A();end;return c;end;local function j(e,v,f)local o=e[g];local s=e[p];local l=e[n];return(function(...)local y={...};local L=o;local o=n;local e=n e*=-1 local _=e;local T={};local F={};local A=I('#',...)-N;local d=l;local l={};local s=s;local p=K for e=0,A do if(e>=s)then T[e-s]=y[e+N];else l[e]=y[e+n];end;end;local e=A-s+n local e;local s;while true do e=d[o];s=e[(72-0x47)];a=(1661472)while s<=(-114+0xa7)do a-= a a=(481539)while(0x99+-127)>=s do a-= a a=(6423960)while s<=(0x528/110)do a-= a a=(2370514)while s<=(0x163/71)do a-= a a=(6654879)while((0x84-126)+-#"Bong")>=s do a-= a a=(7020288)while(-#'free trojan'+(0x45-58))>=s do a-= a v[e[w]]=l[e[x]];break;end while 2216==(a)/(((0x1927-3258)+-#'me big peepee'))do a=(4062220)while s>(0xb9/185)do a-= a l[e[r]]=l[e[w]];break end while 2011==(a)/((0x1aa18/(226-0xac)))do l[e[x]][e[u]]=l[e[m]];break end;break;end break;end while 2079==(a)/((3279+-0x4e))do a=(517860)while(94+-0x5b)>=s do a-= a local c=L[e[u]];local a;local n={};a=H({},{__index=function(o,e)local e=n[e];return e[1][e[2]];end,__newindex=function(l,e,o)local e=n[e]e[1][e[2]]=o;end;});for a=1,e[B]do o=o+N;local e=d[o];if e[(0x4e-77)]==2 then n[a-1]={l,e[i]};else n[a-1]={v,e[u]};end;F[#F+1]=n;end;l[e[r]]=j(c,a,f);break;end while(a)/((0xd3a-1742))==315 do a=(93170)while s>(0x1d8/118)do a-= a if(l[e[r]]==l[e[m]])then o=o+N;else o=e[w];end;break end while(a)/((((0xa83-1380)+-#[[Dick]])-702))==154 do l[e[c]]=l[e[u]]-l[e[S]];break end;break;end break;end break;end while(a)/(((0x5bfa0/193)+-#[[black mess more like white mesa]]))==1234 do a=(8177262)while(0x2b-35)>=s do a-= a a=(2438631)while s<=(-#'black mess more like white mesa'+(7992/(-#[[Fuck nigger wank shit dipshit cunt bullshit fuckyou hoe lol]]+(311+-0x24))))do a-= a local a;f[e[b]]=l[e[k]];o=o+n;e=d[o];l[e[k]]=f[e[i]];o=o+n;e=d[o];l[e[r]]=l[e[O]][e[C]];o=o+n;e=d[o];l[e[h]]=e[b];o=o+n;e=d[o];a=e[x]l[a]=l[a](l[a+N])o=o+n;e=d[o];l[e[t]]=f[e[U]];o=o+n;e=d[o];l[e[c]]=l[e[O]][e[C]];o=o+n;e=d[o];l[e[x]]=e[u];o=o+n;e=d[o];a=e[h]l[a]=l[a](l[a+N])o=o+n;e=d[o];l[e[r]]=f[e[i]];o=o+n;e=d[o];l[e[x]]=l[e[i]][e[M]];o=o+n;e=d[o];l[e[c]]=e[b];o=o+n;e=d[o];a=e[x]l[a]=l[a](l[a+N])o=o+n;e=d[o];l[e[r]]=f[e[O]];o=o+n;e=d[o];l[e[h]]=l[e[U]][e[C]];o=o+n;e=d[o];l[e[k]]=e[i];o=o+n;e=d[o];a=e[c]l[a]=l[a](l[a+N])o=o+n;e=d[o];l[e[t]]=f[e[u]];o=o+n;e=d[o];l[e[c]]=l[e[U]][e[B]];o=o+n;e=d[o];l[e[k]]=e[U];o=o+n;e=d[o];a=e[r]l[a]=l[a](l[a+N])o=o+n;e=d[o];l[e[x]]=f[e[w]];o=o+n;e=d[o];l[e[k]]=l[e[O]][e[m]];o=o+n;e=d[o];l[e[c]]=e[u];o=o+n;e=d[o];a=e[k]l[a]=l[a](l[a+N])o=o+n;e=d[o];l[e[k]]=f[e[u]];o=o+n;e=d[o];l[e[t]]=l[e[O]][e[C]];o=o+n;e=d[o];l[e[h]]=e[w];o=o+n;e=d[o];a=e[x]l[a]=l[a](l[a+N])o=o+n;e=d[o];l[e[x]]=f[e[b]];o=o+n;e=d[o];l[e[x]]=l[e[U]][e[C]];o=o+n;e=d[o];l[e[x]]=e[w];o=o+n;e=d[o];a=e[x]l[a]=l[a](l[a+N])o=o+n;e=d[o];l[e[t]][e[i]]=e[S];o=o+n;e=d[o];l[e[h]]=f[e[u]];o=o+n;e=d[o];l[e[t]]=l[e[i]][e[P]];o=o+n;e=d[o];l[e[k]][e[O]]=l[e[B]];o=o+n;e=d[o];l[e[r]]=f[e[U]];o=o+n;e=d[o];l[e[k]]=l[e[U]][e[P]];o=o+n;e=d[o];l[e[r]]=l[e[U]][e[m]];o=o+n;e=d[o];l[e[k]][e[w]]=l[e[B]];o=o+n;e=d[o];l[e[k]][e[U]]=e[C];o=o+n;e=d[o];l[e[t]][e[i]]=l[e[M]];o=o+n;e=d[o];l[e[t]]=f[e[u]];o=o+n;e=d[o];l[e[x]]=l[e[U]][e[P]];o=o+n;e=d[o];l[e[h]]=e[O];o=o+n;e=d[o];l[e[t]]=e[w];o=o+n;e=d[o];l[e[r]]=e[O];o=o+n;e=d[o];a=e[c]l[a]=l[a](D(l,a+n,e[w]))o=o+n;e=d[o];l[e[r]][e[i]]=l[e[C]];o=o+n;e=d[o];l[e[k]]=f[e[U]];o=o+n;e=d[o];l[e[r]]=l[e[w]][e[P]];o=o+n;e=d[o];l[e[r]]=e[w];o=o+n;e=d[o];l[e[t]]=e[w];o=o+n;e=d[o];l[e[x]]=e[b];o=o+n;e=d[o];l[e[c]]=e[b];o=o+n;e=d[o];a=e[h]l[a]=l[a](D(l,a+n,e[U]))o=o+n;e=d[o];l[e[t]][e[U]]=l[e[m]];o=o+n;e=d[o];l[e[t]]=f[e[w]];o=o+n;e=d[o];l[e[c]]=l[e[O]][e[S]];o=o+n;e=d[o];l[e[x]]=e[O];o=o+n;e=d[o];l[e[c]]=e[u];o=o+n;e=d[o];l[e[h]]=e[b];o=o+n;e=d[o];l[e[r]]=e[U];o=o+n;e=d[o];a=e[x]l[a]=l[a](D(l,a+n,e[O]))o=o+n;e=d[o];l[e[h]][e[U]]=l[e[B]];o=o+n;e=d[o];l[e[c]][e[u]]=e[M];o=o+n;e=d[o];l[e[x]][e[b]]=l[e[C]];o=o+n;e=d[o];l[e[c]]=f[e[i]];o=o+n;e=d[o];l[e[t]]=l[e[O]][e[m]];o=o+n;e=d[o];l[e[c]]=e[U];o=o+n;e=d[o];l[e[k]]=e[b];o=o+n;e=d[o];l[e[r]]=e[O];o=o+n;e=d[o];a=e[h]l[a]=l[a](D(l,a+n,e[O]))o=o+n;e=d[o];l[e[c]][e[i]]=l[e[P]];o=o+n;e=d[o];l[e[t]]=f[e[i]];o=o+n;e=d[o];l[e[h]]=l[e[i]][e[P]];o=o+n;e=d[o];l[e[c]]=e[U];o=o+n;e=d[o];l[e[h]]=e[b];o=o+n;e=d[o];l[e[t]]=e[i];break;end while(a)/(((1745-0x397)+-0x55))==3291 do a=(2294136)while s>((-0x3d+75)+-#"test123")do a-= a local o=e[c]l[o](D(l,o+N,e[i]))break end while 2964==(a)/((-#[[I like gargling cum]]+(852+-0x3b)))do f[e[O]]=l[e[t]];o=o+n;e=d[o];l[e[t]]={};o=o+n;e=d[o];l[e[r]]={};o=o+n;e=d[o];f[e[u]]=l[e[t]];o=o+n;e=d[o];l[e[t]]=f[e[w]];o=o+n;e=d[o];if(l[e[x]]==e[B])then o=o+N;else o=e[u];end;break end;break;end break;end while 2757==(a)/((0xbc3+-45))do a=(1624448)while s<=(-0x37+65)do a-= a a=(6811475)while s>((0xcf-167)+-#[[black mess more like white mesa]])do a-= a l[e[r]]=l[e[u]][e[P]];break end while 2585==(a)/((47430/0x12))do if(l[e[r]]==e[M])then o=o+N;else o=e[w];end;break end;break;end while(a)/((-#"big hard cock"+(117725/0x55)))==1184 do a=(5782800)while(-24+0x23)<s do a-= a f[e[u]]=l[e[h]];break end while(a)/((0xe7a-1876))==3160 do local n=e[U];local o=l[n]for e=n+1,e[P]do o=o..l[e];end;l[e[k]]=o;break end;break;end break;end break;end break;end while 2680==(a)/((0x1322-2501))do a=(24375)while s<=(110-0x5b)do a-= a a=(3768420)while s<=(-#'Cock and ball torture'+(-114+0x96))do a-= a a=(7695688)while(3237/0xf9)>=s do a-= a l[e[k]][e[w]]=e[S];break;end while 2387==(a)/((29016/0x9))do a=(2670108)while s>(97-0x53)do a-= a o=e[O];break end while(a)/((1543-0x33a))==3724 do l[e[r]]=j(L[e[b]],nil,f);break end;break;end break;end while(a)/((-#'me big peepee'+(3699+-0x42)))==1041 do a=(2245440)while s<=(-0x68+121)do a-= a a=(4339024)while s>(0x810/129)do a-= a local e=e[t]l[e]=l[e](l[e+N])break end while(a)/((2286-0x496))==3902 do do return l[e[h]]end break end;break;end while(a)/((42102/0x12))==960 do a=(4410900)while s>(0x69-87)do a-= a l[e[h]]=e[U];break end while(a)/((573417/(-#[[Cock and ball torture]]+(0x8598/180))))==1300 do do return end;break end;break;end break;end break;end while(a)/(((0xdc-122)+-#'Fuck nigger wank shit dipshit cunt bullshit fuckyou hoe lol'))==625 do a=(4364119)while(4708/0xd6)>=s do a-= a a=(1867968)while s<=((182-0x97)+-#"Little kids")do a-= a local n=e[x];local a=l[n+2];local d=l[n]+a;l[n]=d;if(a>0)then if(d<=l[n+1])then o=e[U];l[n+3]=d;end elseif(d>=l[n+1])then o=e[w];l[n+3]=d;end break;end while 3312==(a)/((-#[[cum fuck]]+(-0x2e+618)))do a=(2939058)while s>(0x24c/28)do a-= a l[e[h]]=#l[e[O]];break end while 1471==(a)/(((-#"dick cheese"+(-0x2f+-57))+0x841))do v[e[w]]=l[e[x]];break end;break;end break;end while 3907==(a)/((-0x18+1141))do a=(1384378)while s<=(-#[[Little kids]]+(-0x11+52))do a-= a a=(5641458)while s>(138+-0x73)do a-= a l[e[r]]=#l[e[O]];break end while(a)/(((0x25baf26/213)/51))==1549 do local a;a=e[t]l[a](D(l,a+N,e[U]))o=o+n;e=d[o];l[e[k]][e[b]]=e[S];o=o+n;e=d[o];l[e[x]][e[i]]=l[e[P]];o=o+n;e=d[o];l[e[t]]=f[e[U]];o=o+n;e=d[o];l[e[x]]=l[e[U]][e[S]];o=o+n;e=d[o];l[e[t]]=e[b];o=o+n;e=d[o];l[e[c]]=e[i];o=o+n;e=d[o];l[e[h]]=e[i];o=o+n;e=d[o];a=e[k]l[a]=l[a](D(l,a+n,e[u]))o=o+n;e=d[o];l[e[t]][e[w]]=l[e[C]];break end;break;end while 2143==(a)/((-#"test"+(-19+0x29d)))do a=(989787)while s>(0x10e5/173)do a-= a local B;local k;local s;local a;l[e[t]]=f[e[i]];o=o+n;e=d[o];l[e[x]]=l[e[i]][e[M]];o=o+n;e=d[o];a=e[x];s=l[e[u]];l[a+1]=s;l[a]=s[e[m]];o=o+n;e=d[o];l[e[h]]=l[e[w]];o=o+n;e=d[o];l[e[r]]=l[e[w]];o=o+n;e=d[o];a=e[c]l[a]=l[a](D(l,a+n,e[U]))o=o+n;e=d[o];a=e[h];s=l[e[w]];l[a+1]=s;l[a]=s[e[m]];o=o+n;e=d[o];a=e[h]l[a]=l[a](l[a+N])o=o+n;e=d[o];k={l,e};k[N][k[g][r]]=k[n][k[g][P]]+k[N][k[g][U]];o=o+n;e=d[o];l[e[t]]=l[e[b]]%e[C];o=o+n;e=d[o];a=e[r]l[a]=l[a](l[a+N])o=o+n;e=d[o];s=e[u];B=l[s]for e=s+1,e[M]do B=B..l[e];end;l[e[c]]=B;o=o+n;e=d[o];k={l,e};k[N][k[g][h]]=k[n][k[g][S]]+k[N][k[g][w]];o=o+n;e=d[o];l[e[t]]=l[e[O]]%e[P];break end while(a)/((92544/(14848/0x74)))==1369 do if(l[e[c]]==e[P])then o=o+N;else o=e[i];end;break end;break;end break;end break;end break;end break;end while 3189==(a)/((-#"cum fuck"+(422-0x107)))do a=(1521666)while s<=((171-0x79)+-#"Little kids")do a-= a a=(10243746)while(0x100/8)>=s do a-= a a=(4037670)while(1798/0x3e)>=s do a-= a a=(240800)while((-0xbea/25)+0x95)>=s do a-= a l[e[h]]=v[e[i]];break;end while 1075==(a)/(((0x92e/10)+-#'dick cheese'))do a=(891528)while s>(0x39+-29)do a-= a local e=e[h]l[e]=l[e](l[e+N])break end while 1842==(a)/(((1028-0x21c)+-#[[test]]))do l[e[x]]=(e[b]~=0);break end;break;end break;end while(a)/((-#[[black mess more like white mesa]]+(0xe804/31)))==2142 do a=(2170740)while s<=(-#[[Fuck nigger wank shit dipshit cunt bullshit fuckyou hoe lol]]+(109+-0x14))do a-= a local e=e[t]local d,o=p(l[e](l[e+N]))_=o+e-n local o=0;for e=e,_ do o=o+n;l[e]=d[o];end;break;end while(a)/((-0x2a+1857))==1196 do a=(6205395)while s>(-66+0x61)do a-= a local r;local a;l[e[x]]=e[U];o=o+n;e=d[o];l[e[k]]=e[b];o=o+n;e=d[o];l[e[t]]=e[b];o=o+n;e=d[o];a=e[c]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[c]][e[i]]=l[e[C]];o=o+n;e=d[o];l[e[k]][e[U]]=e[P];o=o+n;e=d[o];l[e[c]]=l[e[u]][e[B]];o=o+n;e=d[o];a=e[x];r=l[e[i]];l[a+1]=r;l[a]=r[e[C]];break end while(a)/((-#"me big peepee"+(-125+0xed7)))==1695 do local i;local a;l[e[k]]=e[u];o=o+n;e=d[o];l[e[t]]=e[w];o=o+n;e=d[o];l[e[h]]=e[w];o=o+n;e=d[o];a=e[h]l[a]=l[a](D(l,a+n,e[b]))o=o+n;e=d[o];l[e[h]][e[w]]=l[e[m]];o=o+n;e=d[o];l[e[r]][e[w]]=e[C];o=o+n;e=d[o];l[e[x]]=l[e[w]][e[S]];o=o+n;e=d[o];a=e[k];i=l[e[O]];l[a+1]=i;l[a]=i[e[S]];break end;break;end break;end break;end while(a)/((-#"Bong"+(6038-0xbdd)))==3418 do a=(4566462)while((0x8c-94)+-#[[free trojan]])>=s do a-= a a=(2343671)while s<=(-#"Fuck nigger wank shit dipshit cunt bullshit fuckyou hoe lol"+(0x2fcc/133))do a-= a if l[e[x]]then o=o+n;else o=e[w];end;break;end while(a)/((-123+0xa82))==913 do a=(8594910)while s>(0x4a6/35)do a-= a if not l[e[c]]then o=o+N;else o=e[O];end;break end while(a)/((4952-0x9da))==3537 do local g;local y,v;local s;local a;l[e[h]][e[w]]=e[m];o=o+n;e=d[o];l[e[k]]=f[e[w]];o=o+n;e=d[o];l[e[k]]=l[e[U]][e[P]];o=o+n;e=d[o];l[e[c]]=e[w];o=o+n;e=d[o];l[e[x]]=e[i];o=o+n;e=d[o];l[e[k]]=e[w];o=o+n;e=d[o];a=e[h]l[a]=l[a](D(l,a+n,e[w]))o=o+n;e=d[o];l[e[c]][e[b]]=l[e[C]];o=o+n;e=d[o];l[e[t]]=f[e[u]];o=o+n;e=d[o];a=e[h];s=l[e[U]];l[a+1]=s;l[a]=s[e[B]];o=o+n;e=d[o];l[e[h]]=e[i];o=o+n;e=d[o];a=e[h]l[a]=l[a](D(l,a+n,e[w]))o=o+n;e=d[o];l[e[h]]=l[e[w]][e[C]];o=o+n;e=d[o];l[e[x]]=l[e[U]][e[M]];o=o+n;e=d[o];a=e[k];s=l[e[w]];l[a+1]=s;l[a]=s[e[m]];o=o+n;e=d[o];l[e[h]]=f[e[w]];o=o+n;e=d[o];l[e[c]]=l[e[i]];o=o+n;e=d[o];a=e[t]y,v=p(l[a](l[a+N]))_=v+a-n g=0;for e=a,_ do g=g+n;l[e]=y[g];end;o=o+n;e=d[o];a=e[k]l[a](D(l,a+N,_))o=o+n;e=d[o];l[e[r]]=f[e[b]];o=o+n;e=d[o];l[e[k]]=e[i];o=o+n;e=d[o];a=e[x]l[a](l[a+N])o=o+n;e=d[o];l[e[t]]={};o=o+n;e=d[o];l[e[k]][e[U]]=e[B];o=o+n;e=d[o];l[e[x]]=f[e[u]];o=o+n;e=d[o];l[e[k]]=l[e[b]][e[P]];o=o+n;e=d[o];l[e[c]]=e[i];o=o+n;e=d[o];l[e[c]]=e[u];o=o+n;e=d[o];l[e[h]]=e[O];o=o+n;e=d[o];a=e[h]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[r]][e[i]]=l[e[M]];o=o+n;e=d[o];l[e[r]]=f[e[u]];o=o+n;e=d[o];a=e[h];s=l[e[w]];l[a+1]=s;l[a]=s[e[C]];o=o+n;e=d[o];l[e[h]]=e[U];o=o+n;e=d[o];a=e[t]l[a]=l[a](D(l,a+n,e[u]))o=o+n;e=d[o];l[e[k]]=l[e[U]][e[B]];o=o+n;e=d[o];l[e[x]]=l[e[w]][e[m]];o=o+n;e=d[o];a=e[r];s=l[e[b]];l[a+1]=s;l[a]=s[e[M]];o=o+n;e=d[o];l[e[x]]=f[e[i]];o=o+n;e=d[o];l[e[k]]=l[e[O]];o=o+n;e=d[o];a=e[t]y,v=p(l[a](l[a+N]))_=v+a-n g=0;for e=a,_ do g=g+n;l[e]=y[g];end;o=o+n;e=d[o];a=e[k]l[a](D(l,a+N,_))o=o+n;e=d[o];l[e[c]]={};o=o+n;e=d[o];l[e[x]][e[b]]=e[S];o=o+n;e=d[o];l[e[k]]=f[e[i]];o=o+n;e=d[o];l[e[c]]=l[e[u]][e[M]];o=o+n;e=d[o];l[e[t]]=e[w];o=o+n;e=d[o];l[e[t]]=e[U];o=o+n;e=d[o];l[e[h]]=e[u];o=o+n;e=d[o];a=e[r]l[a]=l[a](D(l,a+n,e[O]))o=o+n;e=d[o];l[e[r]][e[O]]=l[e[S]];o=o+n;e=d[o];l[e[c]]=f[e[U]];o=o+n;e=d[o];a=e[h];s=l[e[O]];l[a+1]=s;l[a]=s[e[B]];o=o+n;e=d[o];l[e[h]]=e[w];o=o+n;e=d[o];a=e[t]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[k]]=l[e[i]][e[P]];o=o+n;e=d[o];l[e[h]]=l[e[O]][e[S]];o=o+n;e=d[o];a=e[k];s=l[e[U]];l[a+1]=s;l[a]=s[e[m]];o=o+n;e=d[o];l[e[c]]=f[e[O]];o=o+n;e=d[o];l[e[t]]=l[e[u]];o=o+n;e=d[o];a=e[k]y,v=p(l[a](l[a+N]))_=v+a-n g=0;for e=a,_ do g=g+n;l[e]=y[g];end;o=o+n;e=d[o];a=e[r]l[a](D(l,a+N,_))o=o+n;e=d[o];l[e[t]]={};o=o+n;e=d[o];l[e[t]][e[U]]=e[B];o=o+n;e=d[o];l[e[x]]=f[e[U]];o=o+n;e=d[o];l[e[h]]=l[e[U]][e[B]];o=o+n;e=d[o];l[e[k]]=e[O];o=o+n;e=d[o];l[e[c]]=e[i];o=o+n;e=d[o];l[e[t]]=e[U];o=o+n;e=d[o];a=e[x]l[a]=l[a](D(l,a+n,e[w]))o=o+n;e=d[o];l[e[r]][e[w]]=l[e[M]];o=o+n;e=d[o];l[e[h]]=f[e[w]];o=o+n;e=d[o];a=e[t];s=l[e[i]];l[a+1]=s;l[a]=s[e[B]];o=o+n;e=d[o];l[e[t]]=e[O];o=o+n;e=d[o];a=e[k]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[k]]=l[e[b]][e[C]];o=o+n;e=d[o];l[e[r]]=l[e[i]][e[B]];o=o+n;e=d[o];a=e[k];s=l[e[O]];l[a+1]=s;l[a]=s[e[M]];o=o+n;e=d[o];l[e[x]]=f[e[U]];o=o+n;e=d[o];l[e[h]]=l[e[w]];break end;break;end break;end while 3607==(a)/((0xa5f-1389))do a=(3312288)while s<=(-#[[I like gargling cum]]+(9408/0xa8))do a-= a a=(9430440)while s>((0x59+-40)+-#[[amena jumping]])do a-= a if l[e[r]]then o=o+n;else o=e[w];end;break end while(a)/((249006/0x5e))==3560 do local a;l[e[r]]=e[i];o=o+n;e=d[o];l[e[k]]=e[u];o=o+n;e=d[o];a=e[r]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[c]][e[i]]=l[e[B]];o=o+n;e=d[o];l[e[r]]=f[e[O]];o=o+n;e=d[o];l[e[h]]=l[e[b]][e[m]];o=o+n;e=d[o];l[e[c]]=l[e[w]][e[M]];o=o+n;e=d[o];l[e[r]][e[i]]=l[e[S]];o=o+n;e=d[o];l[e[c]][e[u]]=e[m];o=o+n;e=d[o];l[e[t]]=f[e[i]];break end;break;end while(a)/(((0xa35-1328)+-#[[me big peepee]]))==2604 do a=(588142)while s>(1216/0x20)do a-= a local n=e[h];local o=l[e[i]];l[n+1]=o;l[n]=o[e[S]];break end while 719==(a)/(((953+-0x7a)+-#'me big peepee'))do local e=e[t]l[e](l[e+N])break end;break;end break;end break;end break;end while 2727==(a)/((-#"Bong"+(17984/0x20)))do a=(6384000)while((0x8a-88)+-#[[Bong]])>=s do a-= a a=(709458)while(-#"dick cheese"+(-127+0xb4))>=s do a-= a a=(12448352)while s<=(0x91+-105)do a-= a l[e[x]][e[b]]=l[e[m]];break;end while(a)/((0xf57+-119))==3269 do a=(5061401)while s>(164+((-0x4f+-40)+-#'Dick'))do a-= a if(l[e[h]]==l[e[m]])then o=o+N;else o=e[w];end;break end while(a)/((0x1dda-3845))==1333 do local g;local y,v;local s;local a;l[e[r]][e[b]]=e[P];o=o+n;e=d[o];l[e[x]]=f[e[u]];o=o+n;e=d[o];l[e[t]]=l[e[O]][e[S]];o=o+n;e=d[o];l[e[r]]=e[u];o=o+n;e=d[o];l[e[r]]=e[i];o=o+n;e=d[o];l[e[c]]=e[U];o=o+n;e=d[o];a=e[r]l[a]=l[a](D(l,a+n,e[b]))o=o+n;e=d[o];l[e[h]][e[U]]=l[e[C]];o=o+n;e=d[o];l[e[c]]=f[e[w]];o=o+n;e=d[o];a=e[h];s=l[e[b]];l[a+1]=s;l[a]=s[e[C]];o=o+n;e=d[o];l[e[r]]=e[w];o=o+n;e=d[o];a=e[x]l[a]=l[a](D(l,a+n,e[w]))o=o+n;e=d[o];l[e[h]]=l[e[u]][e[B]];o=o+n;e=d[o];l[e[r]]=l[e[U]][e[M]];o=o+n;e=d[o];a=e[x];s=l[e[U]];l[a+1]=s;l[a]=s[e[B]];o=o+n;e=d[o];l[e[x]]=f[e[O]];o=o+n;e=d[o];l[e[x]]=l[e[i]];o=o+n;e=d[o];a=e[t]y,v=p(l[a](l[a+N]))_=v+a-n g=0;for e=a,_ do g=g+n;l[e]=y[g];end;o=o+n;e=d[o];a=e[r]l[a](D(l,a+N,_))o=o+n;e=d[o];l[e[r]]={};o=o+n;e=d[o];l[e[r]][e[b]]=e[C];o=o+n;e=d[o];l[e[r]]=f[e[w]];o=o+n;e=d[o];l[e[k]]=l[e[b]][e[M]];o=o+n;e=d[o];l[e[x]]=e[u];o=o+n;e=d[o];l[e[r]]=e[U];o=o+n;e=d[o];l[e[x]]=e[w];o=o+n;e=d[o];a=e[r]l[a]=l[a](D(l,a+n,e[b]))o=o+n;e=d[o];l[e[r]][e[U]]=l[e[S]];o=o+n;e=d[o];l[e[c]]=f[e[w]];o=o+n;e=d[o];a=e[c];s=l[e[b]];l[a+1]=s;l[a]=s[e[B]];o=o+n;e=d[o];l[e[r]]=e[w];o=o+n;e=d[o];a=e[r]l[a]=l[a](D(l,a+n,e[b]))o=o+n;e=d[o];l[e[x]]=l[e[u]][e[M]];o=o+n;e=d[o];l[e[t]]=l[e[O]][e[B]];o=o+n;e=d[o];a=e[h];s=l[e[U]];l[a+1]=s;l[a]=s[e[C]];o=o+n;e=d[o];l[e[k]]=f[e[O]];o=o+n;e=d[o];l[e[h]]=l[e[w]];o=o+n;e=d[o];a=e[t]y,v=p(l[a](l[a+N]))_=v+a-n g=0;for e=a,_ do g=g+n;l[e]=y[g];end;o=o+n;e=d[o];a=e[h]l[a](D(l,a+N,_))o=o+n;e=d[o];l[e[r]]={};o=o+n;e=d[o];l[e[x]][e[u]]=e[S];o=o+n;e=d[o];l[e[k]]=f[e[O]];o=o+n;e=d[o];l[e[k]]=l[e[i]][e[B]];o=o+n;e=d[o];l[e[t]]=e[U];o=o+n;e=d[o];l[e[x]]=e[b];o=o+n;e=d[o];l[e[k]]=e[b];o=o+n;e=d[o];a=e[r]l[a]=l[a](D(l,a+n,e[b]))o=o+n;e=d[o];l[e[c]][e[u]]=l[e[m]];o=o+n;e=d[o];l[e[c]]=f[e[U]];o=o+n;e=d[o];a=e[t];s=l[e[U]];l[a+1]=s;l[a]=s[e[P]];o=o+n;e=d[o];l[e[c]]=e[O];o=o+n;e=d[o];a=e[c]l[a]=l[a](D(l,a+n,e[u]))o=o+n;e=d[o];l[e[k]]=l[e[b]][e[B]];o=o+n;e=d[o];l[e[t]]=l[e[b]][e[C]];o=o+n;e=d[o];a=e[r];s=l[e[b]];l[a+1]=s;l[a]=s[e[P]];o=o+n;e=d[o];l[e[x]]=f[e[b]];o=o+n;e=d[o];l[e[c]]=l[e[w]];o=o+n;e=d[o];a=e[x]y,v=p(l[a](l[a+N]))_=v+a-n g=0;for e=a,_ do g=g+n;l[e]=y[g];end;o=o+n;e=d[o];a=e[t]l[a](D(l,a+N,_))o=o+n;e=d[o];l[e[k]]={};o=o+n;e=d[o];l[e[t]][e[i]]=e[B];o=o+n;e=d[o];l[e[k]]=f[e[u]];o=o+n;e=d[o];l[e[c]]=l[e[b]][e[B]];o=o+n;e=d[o];l[e[r]]=e[b];o=o+n;e=d[o];l[e[k]]=e[w];o=o+n;e=d[o];l[e[t]]=e[w];o=o+n;e=d[o];a=e[h]l[a]=l[a](D(l,a+n,e[w]))o=o+n;e=d[o];l[e[c]][e[O]]=l[e[B]];o=o+n;e=d[o];l[e[r]]=f[e[w]];o=o+n;e=d[o];a=e[r];s=l[e[w]];l[a+1]=s;l[a]=s[e[S]];o=o+n;e=d[o];l[e[h]]=e[b];o=o+n;e=d[o];a=e[k]l[a]=l[a](D(l,a+n,e[b]))o=o+n;e=d[o];l[e[c]]=l[e[U]][e[m]];o=o+n;e=d[o];l[e[h]]=l[e[u]][e[C]];o=o+n;e=d[o];a=e[k];s=l[e[U]];l[a+1]=s;l[a]=s[e[S]];o=o+n;e=d[o];l[e[k]]=f[e[w]];o=o+n;e=d[o];l[e[r]]=l[e[U]];o=o+n;e=d[o];a=e[c]y,v=p(l[a](l[a+N]))_=v+a-n g=0;for e=a,_ do g=g+n;l[e]=y[g];end;o=o+n;e=d[o];a=e[h]l[a](D(l,a+N,_))o=o+n;e=d[o];o=e[w];break end;break;end break;end while 318==(a)/(((0x11bf-2298)+-#"zNugget is dad"))do a=(4070922)while s<=(0x1810/140)do a-= a a=(5912940)while s>(180-0x89)do a-= a local k;local a;l[e[r]]=e[b];o=o+n;e=d[o];l[e[c]]=e[O];o=o+n;e=d[o];l[e[t]]=e[i];o=o+n;e=d[o];a=e[c]l[a]=l[a](D(l,a+n,e[b]))o=o+n;e=d[o];l[e[h]][e[b]]=l[e[C]];o=o+n;e=d[o];l[e[r]][e[U]]=e[S];o=o+n;e=d[o];l[e[t]]=l[e[u]][e[M]];o=o+n;e=d[o];a=e[x];k=l[e[w]];l[a+1]=k;l[a]=k[e[B]];break end while 3179==(a)/((0x645b4/221))do local o=e[r]l[o](D(l,o+N,e[i]))break end;break;end while 3638==(a)/((0x8d4-1141))do a=(13048896)while s>(-#"Never gonna give u up"+(0x8a+-72))do a-= a local a;l[e[c]]=l[e[w]][e[M]];o=o+n;e=d[o];l[e[r]]=e[i];o=o+n;e=d[o];l[e[h]]=e[i];o=o+n;e=d[o];l[e[c]]=e[w];o=o+n;e=d[o];l[e[h]]=e[b];o=o+n;e=d[o];a=e[x]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[t]][e[w]]=l[e[P]];o=o+n;e=d[o];l[e[h]]=f[e[U]];o=o+n;e=d[o];l[e[h]]=l[e[b]][e[S]];o=o+n;e=d[o];l[e[h]]=e[U];break end while 3648==(a)/((-#"me big peepee"+((-0x1f+-95)+3716)))do local e=e[x]l[e](D(l,e+N,_))break end;break;end break;end break;end while 1920==(a)/((462175/((390-0xdc)+-#[[black mess more like white mesa]])))do a=(40180)while s<=(-#'amena jumping'+(0x122a/75))do a-= a a=(9428451)while s<=(195-0x94)do a-= a local n=e[r];local d=l[n]local a=l[n+2];if(a>0)then if(d>l[n+1])then o=e[i];else l[n+3]=d;end elseif(d<l[n+1])then o=e[U];else l[n+3]=d;end break;end while(a)/((-19+0xb84))==3219 do a=(456300)while(11472/0xef)<s do a-= a do return end;break end while(a)/((-84+0xae0))==169 do f[e[O]]=l[e[h]];break end;break;end break;end while(a)/((0x9920/40))==41 do a=(12284736)while(120+-0x45)>=s do a-= a a=(5047030)while(0xe2-176)<s do a-= a do return l[e[k]]end break end while 1774==(a)/((5719-0xb3a))do if(l[e[r]]~=l[e[P]])then o=o+N;else o=e[U];end;break end;break;end while 3488==(a)/((-#[[Fuck nigger wank shit dipshit cunt bullshit fuckyou hoe lol]]+(0x1c13-3606)))do a=(14419405)while s>(-0x5f+147)do a-= a l[e[t]]=l[e[i]][l[e[M]]];break end while(a)/(((-56+0xf96)+-#"Cock and ball torture"))==3685 do local n=e[r];local d=l[n]local a=l[n+2];if(a>0)then if(d>l[n+1])then o=e[O];else l[n+3]=d;end elseif(d<l[n+1])then o=e[w];else l[n+3]=d;end break end;break;end break;end break;end break;end break;end break;end while 641==(a)/((5261-0xa6d))do a=(5583936)while s<=(0x3ca0/194)do a-= a a=(13254058)while s<=(165+-0x63)do a-= a a=(3182592)while(101+-0x2a)>=s do a-= a a=(3897252)while s<=(158+-0x66)do a-= a a=(2862869)while s<=(194-0x8c)do a-= a local o=e[r]l[o]=l[o](D(l,o+n,e[i]))break;end while(a)/((0x8cc+-31))==1289 do a=(7594587)while((0xf5-175)+-#'Nitro Activated')<s do a-= a local n=e[k];local a=l[n+2];local d=l[n]+a;l[n]=d;if(a>0)then if(d<=l[n+1])then o=e[b];l[n+3]=d;end elseif(d>=l[n+1])then o=e[O];l[n+3]=d;end break end while(a)/((0xc74+-97))==2457 do local g;local v,y;local s;local a;l[e[t]][e[O]]=e[S];o=o+n;e=d[o];l[e[c]]=f[e[w]];o=o+n;e=d[o];l[e[k]]=l[e[O]][e[B]];o=o+n;e=d[o];l[e[c]]=e[i];o=o+n;e=d[o];l[e[r]]=e[w];o=o+n;e=d[o];l[e[c]]=e[U];o=o+n;e=d[o];a=e[x]l[a]=l[a](D(l,a+n,e[b]))o=o+n;e=d[o];l[e[h]][e[i]]=l[e[m]];o=o+n;e=d[o];l[e[x]]=f[e[U]];o=o+n;e=d[o];a=e[k];s=l[e[i]];l[a+1]=s;l[a]=s[e[P]];o=o+n;e=d[o];l[e[r]]=e[O];o=o+n;e=d[o];a=e[r]l[a]=l[a](D(l,a+n,e[u]))o=o+n;e=d[o];l[e[r]]=l[e[u]][e[C]];o=o+n;e=d[o];l[e[r]]=l[e[b]][e[C]];o=o+n;e=d[o];a=e[c];s=l[e[O]];l[a+1]=s;l[a]=s[e[P]];o=o+n;e=d[o];l[e[c]]=f[e[b]];o=o+n;e=d[o];l[e[k]]=l[e[u]];o=o+n;e=d[o];a=e[h]v,y=p(l[a](l[a+N]))_=y+a-n g=0;for e=a,_ do g=g+n;l[e]=v[g];end;o=o+n;e=d[o];a=e[c]l[a](D(l,a+N,_))o=o+n;e=d[o];l[e[x]]={};o=o+n;e=d[o];l[e[r]][e[O]]=e[M];o=o+n;e=d[o];l[e[x]]=f[e[w]];o=o+n;e=d[o];l[e[r]]=l[e[i]][e[B]];o=o+n;e=d[o];l[e[k]]=e[u];o=o+n;e=d[o];l[e[x]]=e[b];o=o+n;e=d[o];l[e[t]]=e[b];o=o+n;e=d[o];a=e[x]l[a]=l[a](D(l,a+n,e[U]))o=o+n;e=d[o];l[e[r]][e[u]]=l[e[B]];o=o+n;e=d[o];l[e[x]]=f[e[i]];o=o+n;e=d[o];a=e[c];s=l[e[O]];l[a+1]=s;l[a]=s[e[B]];o=o+n;e=d[o];l[e[t]]=e[w];o=o+n;e=d[o];a=e[r]l[a]=l[a](D(l,a+n,e[b]))o=o+n;e=d[o];l[e[h]]=l[e[i]][e[m]];o=o+n;e=d[o];l[e[k]]=l[e[w]][e[S]];o=o+n;e=d[o];a=e[h];s=l[e[i]];l[a+1]=s;l[a]=s[e[B]];o=o+n;e=d[o];l[e[c]]=f[e[i]];o=o+n;e=d[o];l[e[h]]=l[e[i]];o=o+n;e=d[o];a=e[k]v,y=p(l[a](l[a+N]))_=y+a-n g=0;for e=a,_ do g=g+n;l[e]=v[g];end;o=o+n;e=d[o];a=e[c]l[a](D(l,a+N,_))o=o+n;e=d[o];o=e[i];break end;break;end break;end while(a)/(((1185+-0x7a)+-#[[This is working now]]))==3733 do a=(3389568)while s<=((-20+0x88)+-#"Fuck nigger wank shit dipshit cunt bullshit fuckyou hoe lol")do a-= a l[e[h]]=f[e[i]];break;end while 1344==(a)/((378300/0x96))do a=(8778525)while(0x9c+-98)<s do a-= a local e={l,e};e[N][e[g][h]]=e[n][e[g][S]]+e[N][e[g][O]];break end while 4025==(a)/(((0x1190-2256)+-#[[Fuck nigger wank shit dipshit cunt bullshit fuckyou hoe lol]]))do l[e[x]]=(e[U]~=0);break end;break;end break;end break;end while 1036==(a)/((0x1878-(6472-0xcd0)))do a=(2626754)while(-#'This is working now'+(-0x61+178))>=s do a-= a a=(3729024)while s<=(200-0x8c)do a-= a local a;a=e[k]l[a](D(l,a+N,e[u]))o=o+n;e=d[o];l[e[c]][e[u]]=e[S];o=o+n;e=d[o];l[e[c]][e[u]]=l[e[B]];o=o+n;e=d[o];l[e[t]]=f[e[u]];o=o+n;e=d[o];l[e[h]]=l[e[O]][e[M]];o=o+n;e=d[o];l[e[r]]=e[u];o=o+n;e=d[o];l[e[k]]=e[i];o=o+n;e=d[o];l[e[r]]=e[w];o=o+n;e=d[o];a=e[h]l[a]=l[a](D(l,a+n,e[b]))o=o+n;e=d[o];l[e[c]][e[u]]=l[e[C]];break;end while(a)/((3491-0x6e3))==2158 do a=(2853058)while s>(-#"Never gonna give u up"+(0x4812/225))do a-= a local a;l[e[k]]=l[e[b]][e[M]];o=o+n;e=d[o];l[e[x]]=e[u];o=o+n;e=d[o];l[e[r]]=e[i];o=o+n;e=d[o];l[e[x]]=e[u];o=o+n;e=d[o];l[e[t]]=e[i];o=o+n;e=d[o];a=e[x]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[h]][e[i]]=l[e[P]];o=o+n;e=d[o];l[e[r]]=f[e[u]];o=o+n;e=d[o];l[e[c]]=l[e[U]][e[m]];o=o+n;e=d[o];l[e[x]]=e[U];break end while 3887==(a)/(((-57+0x327)+-#'187 ist die gang'))do l[e[t]]=f[e[b]];break end;break;end break;end while(a)/((0x6c7-929))==3259 do a=(2105226)while(-42+0x6a)>=s do a-= a a=(10211509)while(-66+0x81)<s do a-= a local g;local v,y;local s;local a;l[e[r]][e[u]]=e[M];o=o+n;e=d[o];l[e[c]]=f[e[w]];o=o+n;e=d[o];l[e[h]]=l[e[i]][e[m]];o=o+n;e=d[o];l[e[h]]=e[b];o=o+n;e=d[o];l[e[h]]=e[u];o=o+n;e=d[o];l[e[k]]=e[U];o=o+n;e=d[o];a=e[x]l[a]=l[a](D(l,a+n,e[U]))o=o+n;e=d[o];l[e[x]][e[b]]=l[e[P]];o=o+n;e=d[o];l[e[t]]=f[e[w]];o=o+n;e=d[o];a=e[t];s=l[e[U]];l[a+1]=s;l[a]=s[e[S]];o=o+n;e=d[o];l[e[h]]=e[O];o=o+n;e=d[o];a=e[h]l[a]=l[a](D(l,a+n,e[u]))o=o+n;e=d[o];l[e[x]]=l[e[b]][e[M]];o=o+n;e=d[o];l[e[r]]=l[e[u]][e[P]];o=o+n;e=d[o];a=e[t];s=l[e[b]];l[a+1]=s;l[a]=s[e[C]];o=o+n;e=d[o];l[e[k]]=f[e[i]];o=o+n;e=d[o];l[e[t]]=l[e[u]];o=o+n;e=d[o];a=e[k]v,y=p(l[a](l[a+N]))_=y+a-n g=0;for e=a,_ do g=g+n;l[e]=v[g];end;o=o+n;e=d[o];a=e[r]l[a](D(l,a+N,_))o=o+n;e=d[o];l[e[r]]=f[e[O]];o=o+n;e=d[o];l[e[t]]=e[b];o=o+n;e=d[o];a=e[x]l[a](l[a+N])o=o+n;e=d[o];l[e[h]]={};o=o+n;e=d[o];l[e[k]][e[i]]=e[S];o=o+n;e=d[o];l[e[x]]=f[e[w]];o=o+n;e=d[o];l[e[r]]=l[e[U]][e[m]];o=o+n;e=d[o];l[e[c]]=e[O];o=o+n;e=d[o];l[e[x]]=e[i];o=o+n;e=d[o];l[e[k]]=e[i];o=o+n;e=d[o];a=e[k]l[a]=l[a](D(l,a+n,e[w]))o=o+n;e=d[o];l[e[c]][e[O]]=l[e[S]];o=o+n;e=d[o];l[e[x]]=f[e[O]];o=o+n;e=d[o];a=e[c];s=l[e[u]];l[a+1]=s;l[a]=s[e[C]];o=o+n;e=d[o];l[e[r]]=e[b];o=o+n;e=d[o];a=e[k]l[a]=l[a](D(l,a+n,e[w]))o=o+n;e=d[o];l[e[r]]=l[e[u]][e[C]];o=o+n;e=d[o];l[e[h]]=l[e[b]][e[B]];o=o+n;e=d[o];a=e[c];s=l[e[b]];l[a+1]=s;l[a]=s[e[P]];o=o+n;e=d[o];l[e[c]]=f[e[i]];o=o+n;e=d[o];l[e[r]]=l[e[w]];o=o+n;e=d[o];a=e[h]v,y=p(l[a](l[a+N]))_=y+a-n g=0;for e=a,_ do g=g+n;l[e]=v[g];end;o=o+n;e=d[o];a=e[x]l[a](D(l,a+N,_))o=o+n;e=d[o];l[e[k]]={};o=o+n;e=d[o];l[e[c]][e[i]]=e[P];o=o+n;e=d[o];l[e[x]]=f[e[w]];o=o+n;e=d[o];l[e[h]]=l[e[w]][e[P]];o=o+n;e=d[o];l[e[h]]=e[w];o=o+n;e=d[o];l[e[x]]=e[U];o=o+n;e=d[o];l[e[r]]=e[U];o=o+n;e=d[o];a=e[c]l[a]=l[a](D(l,a+n,e[u]))o=o+n;e=d[o];l[e[t]][e[i]]=l[e[S]];o=o+n;e=d[o];l[e[r]]=f[e[b]];o=o+n;e=d[o];a=e[r];s=l[e[w]];l[a+1]=s;l[a]=s[e[P]];o=o+n;e=d[o];l[e[c]]=e[O];o=o+n;e=d[o];a=e[r]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[r]]=l[e[O]][e[M]];o=o+n;e=d[o];l[e[t]]=l[e[U]][e[M]];o=o+n;e=d[o];a=e[k];s=l[e[U]];l[a+1]=s;l[a]=s[e[m]];o=o+n;e=d[o];l[e[k]]=f[e[b]];o=o+n;e=d[o];l[e[c]]=l[e[b]];o=o+n;e=d[o];a=e[r]v,y=p(l[a](l[a+N]))_=y+a-n g=0;for e=a,_ do g=g+n;l[e]=v[g];end;o=o+n;e=d[o];a=e[x]l[a](D(l,a+N,_))o=o+n;e=d[o];l[e[h]]={};o=o+n;e=d[o];l[e[k]][e[u]]=e[B];o=o+n;e=d[o];l[e[r]]=f[e[i]];o=o+n;e=d[o];l[e[r]]=l[e[i]][e[m]];o=o+n;e=d[o];l[e[h]]=e[u];o=o+n;e=d[o];l[e[t]]=e[U];o=o+n;e=d[o];l[e[h]]=e[b];o=o+n;e=d[o];a=e[x]l[a]=l[a](D(l,a+n,e[w]))o=o+n;e=d[o];l[e[k]][e[U]]=l[e[B]];o=o+n;e=d[o];l[e[t]]=f[e[b]];o=o+n;e=d[o];a=e[x];s=l[e[w]];l[a+1]=s;l[a]=s[e[C]];o=o+n;e=d[o];l[e[h]]=e[b];o=o+n;e=d[o];a=e[c]l[a]=l[a](D(l,a+n,e[O]))o=o+n;e=d[o];l[e[r]]=l[e[u]][e[M]];o=o+n;e=d[o];l[e[t]]=l[e[u]][e[B]];o=o+n;e=d[o];a=e[k];s=l[e[u]];l[a+1]=s;l[a]=s[e[B]];o=o+n;e=d[o];l[e[t]]=f[e[U]];o=o+n;e=d[o];l[e[x]]=l[e[b]];break end while 2959==(a)/(((353124/0x66)+-#"free trojan"))do l[e[t]][l[e[U]]]=l[e[C]];break end;break;end while(a)/((-#"Bong"+(2170+-0x14)))==981 do a=(1918404)while s>(-#[[Never gonna give u up]]+(217-0x83))do a-= a local a;l[e[t]]=e[b];o=o+n;e=d[o];a=e[h]l[a]=l[a](D(l,a+n,e[w]))o=o+n;e=d[o];l[e[k]][e[b]]=l[e[C]];o=o+n;e=d[o];l[e[k]]=f[e[i]];o=o+n;e=d[o];l[e[x]]=l[e[U]][e[C]];o=o+n;e=d[o];l[e[k]]=e[U];o=o+n;e=d[o];l[e[r]]=e[O];o=o+n;e=d[o];l[e[c]]=e[O];o=o+n;e=d[o];l[e[c]]=e[b];o=o+n;e=d[o];a=e[c]l[a]=l[a](D(l,a+n,e[b]))break end while(a)/(((0x14e2/9)+-#"Cock and ball torture"))==3348 do l[e[h]]=l[e[w]][l[e[C]]];break end;break;end break;end break;end break;end while 3382==(a)/((-#[[free trojan]]+((-#'Never gonna give u up'+(0x1f44-4032))+-21)))do a=(2606042)while s<=(0x307a/170)do a-= a a=(5533836)while s<=(0x1e3/7)do a-= a a=(3643896)while s<=(10050/0x96)do a-= a o=e[u];break;end while 2489==(a)/((342576/0xea))do a=(13894092)while(0xe9-165)<s do a-= a l[e[r]]=v[e[b]];o=o+n;e=d[o];l[e[h]]=#l[e[i]];o=o+n;e=d[o];v[e[u]]=l[e[r]];o=o+n;e=d[o];l[e[x]]=v[e[O]];o=o+n;e=d[o];l[e[k]]=#l[e[O]];o=o+n;e=d[o];v[e[u]]=l[e[t]];o=o+n;e=d[o];do return end;break end while 3996==(a)/((0xa4aea/194))do local a;l[e[h]]=e[i];o=o+n;e=d[o];l[e[t]]=e[w];o=o+n;e=d[o];a=e[r]l[a]=l[a](D(l,a+n,e[O]))o=o+n;e=d[o];l[e[t]][e[b]]=l[e[C]];o=o+n;e=d[o];l[e[x]]=f[e[b]];o=o+n;e=d[o];l[e[t]]=l[e[b]][e[B]];o=o+n;e=d[o];l[e[x]]=l[e[b]][e[m]];o=o+n;e=d[o];l[e[x]][e[O]]=l[e[B]];o=o+n;e=d[o];l[e[c]][e[U]]=e[C];o=o+n;e=d[o];l[e[c]]=f[e[u]];break end;break;end break;end while 1749==(a)/((0x18f3-3223))do a=(1367710)while(-65+0x88)>=s do a-= a a=(8517010)while(252-0xb6)<s do a-= a local g;local m,v;local s;local a;l[e[x]][e[i]]=e[M];o=o+n;e=d[o];l[e[r]]=f[e[u]];o=o+n;e=d[o];l[e[c]]=l[e[u]][e[B]];o=o+n;e=d[o];l[e[h]]=e[b];o=o+n;e=d[o];l[e[c]]=e[U];o=o+n;e=d[o];l[e[c]]=e[U];o=o+n;e=d[o];a=e[k]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[t]][e[b]]=l[e[P]];o=o+n;e=d[o];l[e[t]]=f[e[b]];o=o+n;e=d[o];a=e[r];s=l[e[O]];l[a+1]=s;l[a]=s[e[M]];o=o+n;e=d[o];l[e[k]]=e[O];o=o+n;e=d[o];a=e[t]l[a]=l[a](D(l,a+n,e[b]))o=o+n;e=d[o];l[e[x]]=l[e[u]][e[C]];o=o+n;e=d[o];l[e[x]]=l[e[u]][e[B]];o=o+n;e=d[o];a=e[h];s=l[e[O]];l[a+1]=s;l[a]=s[e[S]];o=o+n;e=d[o];l[e[t]]=f[e[O]];o=o+n;e=d[o];l[e[x]]=l[e[U]];o=o+n;e=d[o];a=e[h]m,v=p(l[a](l[a+N]))_=v+a-n g=0;for e=a,_ do g=g+n;l[e]=m[g];end;o=o+n;e=d[o];a=e[t]l[a](D(l,a+N,_))o=o+n;e=d[o];l[e[x]]={};o=o+n;e=d[o];l[e[x]][e[u]]=e[P];o=o+n;e=d[o];l[e[t]]=f[e[w]];o=o+n;e=d[o];l[e[r]]=l[e[b]][e[C]];o=o+n;e=d[o];l[e[t]]=e[O];o=o+n;e=d[o];l[e[k]]=e[u];o=o+n;e=d[o];l[e[x]]=e[i];o=o+n;e=d[o];a=e[c]l[a]=l[a](D(l,a+n,e[b]))o=o+n;e=d[o];l[e[k]][e[i]]=l[e[P]];o=o+n;e=d[o];l[e[r]]=f[e[u]];o=o+n;e=d[o];a=e[r];s=l[e[U]];l[a+1]=s;l[a]=s[e[B]];o=o+n;e=d[o];l[e[t]]=e[b];o=o+n;e=d[o];a=e[k]l[a]=l[a](D(l,a+n,e[u]))o=o+n;e=d[o];l[e[t]]=l[e[b]][e[M]];o=o+n;e=d[o];l[e[k]]=l[e[O]][e[B]];o=o+n;e=d[o];a=e[c];s=l[e[U]];l[a+1]=s;l[a]=s[e[C]];o=o+n;e=d[o];l[e[r]]=f[e[b]];o=o+n;e=d[o];l[e[h]]=l[e[u]];o=o+n;e=d[o];a=e[c]m,v=p(l[a](l[a+N]))_=v+a-n g=0;for e=a,_ do g=g+n;l[e]=m[g];end;o=o+n;e=d[o];a=e[r]l[a](D(l,a+N,_))o=o+n;e=d[o];l[e[h]]={};o=o+n;e=d[o];l[e[k]][e[b]]=e[M];o=o+n;e=d[o];l[e[c]]=f[e[i]];o=o+n;e=d[o];l[e[r]]=l[e[b]][e[C]];o=o+n;e=d[o];l[e[r]]=e[O];o=o+n;e=d[o];l[e[r]]=e[i];o=o+n;e=d[o];l[e[h]]=e[i];o=o+n;e=d[o];a=e[c]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[c]][e[U]]=l[e[C]];o=o+n;e=d[o];l[e[x]]=f[e[b]];o=o+n;e=d[o];a=e[h];s=l[e[w]];l[a+1]=s;l[a]=s[e[M]];o=o+n;e=d[o];l[e[c]]=e[b];o=o+n;e=d[o];a=e[r]l[a]=l[a](D(l,a+n,e[U]))o=o+n;e=d[o];l[e[c]]=l[e[w]][e[C]];o=o+n;e=d[o];l[e[r]]=l[e[w]][e[M]];o=o+n;e=d[o];a=e[t];s=l[e[u]];l[a+1]=s;l[a]=s[e[S]];o=o+n;e=d[o];l[e[r]]=f[e[u]];o=o+n;e=d[o];l[e[x]]=l[e[u]];o=o+n;e=d[o];a=e[r]m,v=p(l[a](l[a+N]))_=v+a-n g=0;for e=a,_ do g=g+n;l[e]=m[g];end;o=o+n;e=d[o];a=e[h]l[a](D(l,a+N,_))o=o+n;e=d[o];l[e[h]]={};o=o+n;e=d[o];l[e[c]][e[w]]=e[C];o=o+n;e=d[o];l[e[k]]=f[e[U]];o=o+n;e=d[o];l[e[k]]=l[e[O]][e[B]];o=o+n;e=d[o];l[e[t]]=e[b];o=o+n;e=d[o];l[e[r]]=e[U];o=o+n;e=d[o];l[e[k]]=e[i];o=o+n;e=d[o];a=e[x]l[a]=l[a](D(l,a+n,e[w]))o=o+n;e=d[o];l[e[t]][e[O]]=l[e[B]];o=o+n;e=d[o];l[e[t]]=f[e[u]];o=o+n;e=d[o];a=e[x];s=l[e[i]];l[a+1]=s;l[a]=s[e[M]];o=o+n;e=d[o];l[e[r]]=e[w];o=o+n;e=d[o];a=e[k]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[r]]=l[e[w]][e[C]];o=o+n;e=d[o];l[e[t]]=l[e[u]][e[B]];o=o+n;e=d[o];a=e[x];s=l[e[U]];l[a+1]=s;l[a]=s[e[M]];o=o+n;e=d[o];l[e[c]]=f[e[i]];o=o+n;e=d[o];l[e[r]]=l[e[w]];o=o+n;e=d[o];a=e[c]m,v=p(l[a](l[a+N]))_=v+a-n g=0;for e=a,_ do g=g+n;l[e]=m[g];end;o=o+n;e=d[o];a=e[k]l[a](D(l,a+N,_))o=o+n;e=d[o];o=e[b];break end while 3415==(a)/((-#[[187 ist die gang]]+(0xa17+-73)))do local a;l[e[k]]=e[O];o=o+n;e=d[o];l[e[x]]=e[b];o=o+n;e=d[o];a=e[k]l[a]=l[a](D(l,a+n,e[w]))o=o+n;e=d[o];l[e[r]][e[b]]=l[e[P]];o=o+n;e=d[o];l[e[r]]=f[e[b]];o=o+n;e=d[o];l[e[x]]=l[e[O]][e[M]];o=o+n;e=d[o];l[e[t]]=l[e[U]][e[B]];o=o+n;e=d[o];l[e[c]][e[i]]=l[e[S]];o=o+n;e=d[o];l[e[x]][e[u]]=e[P];o=o+n;e=d[o];l[e[r]]=f[e[b]];break end;break;end while(a)/((1289-0x2be))==2330 do a=(1347488)while s>(195+(-0x39+-66))do a-= a l[e[h]]={};break end while 2477==(a)/((113696/0xd1))do l[e[c]]=e[U];break end;break;end break;end break;end while(a)/((-0x3f+1105))==2501 do a=(10975685)while((-127+0x5e)+0x6d)>=s do a-= a a=(3844800)while s<=((-0x24+114)+-#'test')do a-= a local a;a=e[k]l[a](D(l,a+N,e[U]))o=o+n;e=d[o];l[e[r]][e[O]]=e[S];o=o+n;e=d[o];l[e[r]][e[b]]=l[e[P]];o=o+n;e=d[o];l[e[r]]=f[e[w]];o=o+n;e=d[o];l[e[r]]=l[e[u]][e[M]];o=o+n;e=d[o];l[e[x]]=e[U];o=o+n;e=d[o];l[e[c]]=e[w];o=o+n;e=d[o];l[e[t]]=e[w];o=o+n;e=d[o];a=e[r]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[t]][e[U]]=l[e[C]];break;end while(a)/((-#[[test 123]]+(0x59400/128)))==1350 do a=(9133189)while s>(-108+0xb7)do a-= a l[e[k]]=l[e[b]][e[B]];break end while(a)/((-22+0x8df))==4061 do l[e[t]]=l[e[u]]%e[S];break end;break;end break;end while(a)/((547799/0x8b))==2785 do a=(998203)while s<=(0xea-156)do a-= a a=(4234020)while s>(245-(0x186-222))do a-= a local o=e[x]l[o]=l[o](D(l,o+n,e[w]))break end while 1779==(a)/((238000/0x64))do local a;a=e[x]l[a](D(l,a+N,e[w]))o=o+n;e=d[o];l[e[x]][e[b]]=e[m];o=o+n;e=d[o];l[e[c]][e[O]]=l[e[M]];o=o+n;e=d[o];l[e[x]]=f[e[i]];o=o+n;e=d[o];l[e[r]]=l[e[w]][e[M]];o=o+n;e=d[o];l[e[k]]=e[u];o=o+n;e=d[o];l[e[t]]=e[u];o=o+n;e=d[o];l[e[h]]=e[b];o=o+n;e=d[o];a=e[c]l[a]=l[a](D(l,a+n,e[u]))o=o+n;e=d[o];l[e[x]][e[w]]=l[e[B]];break end;break;end while(a)/(((4171-0x84d)+-#"big hard cock"))==491 do a=(4524048)while(0xbe+-111)<s do a-= a if(l[e[t]]~=l[e[m]])then o=o+N;else o=e[O];end;break end while 1412==(a)/((0x183fc/31))do local t;local a;l[e[c]]=e[O];o=o+n;e=d[o];l[e[h]]=e[i];o=o+n;e=d[o];l[e[r]]=e[O];o=o+n;e=d[o];a=e[c]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[k]][e[i]]=l[e[B]];o=o+n;e=d[o];l[e[x]][e[i]]=e[m];o=o+n;e=d[o];l[e[k]]=l[e[O]][e[B]];o=o+n;e=d[o];a=e[r];t=l[e[U]];l[a+1]=t;l[a]=t[e[M]];break end;break;end break;end break;end break;end break;end while(a)/((-#[[Dick]]+(511036/0xfb)))==2748 do a=(468753)while s<=(0xf6-152)do a-= a a=(394950)while s<=(-0x23+122)do a-= a a=(11650451)while s<=(0x1f2/6)do a-= a a=(517312)while s<=(230-0x95)do a-= a local e={l,e};e[N][e[g][k]]=e[n][e[g][P]]+e[N][e[g][U]];break;end while(a)/((0x251-319))==1888 do a=(5281395)while(101+-0x13)<s do a-= a local e=e[r]l[e](D(l,e+N,_))break end while 1967==(a)/((5417-0xaac))do if not l[e[r]]then o=o+N;else o=e[O];end;break end;break;end break;end while 3721==(a)/((488436/0x9c))do a=(582912)while s<=(0x3a7/11)do a-= a a=(3003208)while(((227+-0x6d)+-0x13)+-#'Nitro Activated')<s do a-= a l[e[r]]=l[e[O]];break end while(a)/((3519+-0x23))==862 do local n=e[w];local o=l[n]for e=n+1,e[C]do o=o..l[e];end;l[e[r]]=o;break end;break;end while(a)/((-#"Cock and ball torture"+(240465/0xcd)))==506 do a=(10889766)while(105+-0x13)<s do a-= a local o=e[k];local n=l[e[w]];l[o+1]=n;l[o]=n[e[P]];break end while(a)/(((0xe0b+-45)+-#"Dick"))==3071 do l[e[x]]=l[e[w]]%e[P];break end;break;end break;end break;end while 2633==(a)/((14700/0x62))do a=(3797841)while(0xdc-130)>=s do a-= a a=(566984)while s<=(202-0x72)do a-= a local c=L[e[O]];local i;local n={};i=H({},{__index=function(o,e)local e=n[e];return e[1][e[2]];end,__newindex=function(l,e,o)local e=n[e]e[1][e[2]]=o;end;});for a=1,e[C]do o=o+N;local e=d[o];if e[((0x8d0/188)+-#[[Little kids]])]==2 then n[a-1]={l,e[U]};else n[a-1]={v,e[b]};end;F[#F+1]=n;end;l[e[r]]=j(c,i,f);break;end while 3032==(a)/((0x9a21/211))do a=(4470984)while(-0x3d+150)<s do a-= a local a;l[e[h]]=e[U];o=o+n;e=d[o];l[e[c]]=e[u];o=o+n;e=d[o];a=e[r]l[a]=l[a](D(l,a+n,e[u]))o=o+n;e=d[o];l[e[x]][e[i]]=l[e[S]];o=o+n;e=d[o];l[e[t]]=f[e[w]];o=o+n;e=d[o];l[e[k]]=l[e[O]][e[M]];o=o+n;e=d[o];l[e[h]]=l[e[U]][e[S]];o=o+n;e=d[o];l[e[x]][e[O]]=l[e[S]];o=o+n;e=d[o];l[e[t]][e[w]]=e[M];o=o+n;e=d[o];l[e[x]]=f[e[u]];break end while 1512==(a)/((-39+0xbb4))do l[e[k]]=f[e[U]];o=o+n;e=d[o];l[e[x]]=l[e[O]][e[S]];o=o+n;e=d[o];l[e[h]]=l[e[u]][e[P]];o=o+n;e=d[o];l[e[k]][e[u]]=l[e[M]];o=o+n;e=d[o];l[e[t]][e[b]]=e[M];o=o+n;e=d[o];l[e[h]]=f[e[u]];o=o+n;e=d[o];l[e[c]]=l[e[b]][e[B]];o=o+n;e=d[o];l[e[r]]=e[i];o=o+n;e=d[o];l[e[t]]=e[i];o=o+n;e=d[o];l[e[h]]=e[u];break end;break;end break;end while(a)/((586365/0xc3))==1263 do a=(4827504)while s<=(230-0x8a)do a-= a a=(726642)while s>(0xa5+-74)do a-= a local a;a=e[k]l[a](D(l,a+N,e[i]))o=o+n;e=d[o];l[e[k]][e[O]]=e[P];o=o+n;e=d[o];l[e[x]][e[i]]=l[e[S]];o=o+n;e=d[o];l[e[x]]=f[e[u]];o=o+n;e=d[o];l[e[r]]=l[e[O]][e[C]];o=o+n;e=d[o];l[e[c]]=e[U];o=o+n;e=d[o];l[e[t]]=e[b];o=o+n;e=d[o];l[e[k]]=e[w];o=o+n;e=d[o];a=e[r]l[a]=l[a](D(l,a+n,e[w]))o=o+n;e=d[o];l[e[c]][e[U]]=l[e[m]];break end while 1022==(a)/((0x2dc+-21))do l[e[r]]=v[e[U]];break end;break;end while(a)/((-#"guys Please proceed to translate D to Sinhala"+(157974/0x71)))==3568 do a=(6409004)while s>(0x123-198)do a-= a l[e[t]]=j(L[e[O]],nil,f);break end while 1721==(a)/((3747+-0x17))do local g;local v,y;local s;local a;l[e[t]][e[O]]=e[m];o=o+n;e=d[o];l[e[t]]=f[e[u]];o=o+n;e=d[o];l[e[t]]=l[e[U]][e[B]];o=o+n;e=d[o];l[e[k]]=e[i];o=o+n;e=d[o];l[e[t]]=e[u];o=o+n;e=d[o];l[e[r]]=e[u];o=o+n;e=d[o];a=e[h]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[x]][e[u]]=l[e[S]];o=o+n;e=d[o];l[e[h]]=f[e[i]];o=o+n;e=d[o];a=e[h];s=l[e[U]];l[a+1]=s;l[a]=s[e[B]];o=o+n;e=d[o];l[e[h]]=e[O];o=o+n;e=d[o];a=e[t]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[r]]=l[e[U]][e[B]];o=o+n;e=d[o];l[e[t]]=l[e[O]][e[C]];o=o+n;e=d[o];a=e[x];s=l[e[O]];l[a+1]=s;l[a]=s[e[m]];o=o+n;e=d[o];l[e[k]]=f[e[O]];o=o+n;e=d[o];l[e[c]]=l[e[b]];o=o+n;e=d[o];a=e[c]v,y=p(l[a](l[a+N]))_=y+a-n g=0;for e=a,_ do g=g+n;l[e]=v[g];end;o=o+n;e=d[o];a=e[k]l[a](D(l,a+N,_))o=o+n;e=d[o];l[e[r]]={};o=o+n;e=d[o];l[e[k]][e[b]]=e[P];o=o+n;e=d[o];l[e[h]]=f[e[u]];o=o+n;e=d[o];l[e[r]]=l[e[O]][e[P]];o=o+n;e=d[o];l[e[r]]=e[i];o=o+n;e=d[o];l[e[k]]=e[w];o=o+n;e=d[o];l[e[h]]=e[i];o=o+n;e=d[o];a=e[k]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[c]][e[O]]=l[e[B]];o=o+n;e=d[o];l[e[t]]=f[e[u]];o=o+n;e=d[o];a=e[c];s=l[e[O]];l[a+1]=s;l[a]=s[e[S]];o=o+n;e=d[o];l[e[c]]=e[U];o=o+n;e=d[o];a=e[t]l[a]=l[a](D(l,a+n,e[u]))o=o+n;e=d[o];l[e[k]]=l[e[w]][e[S]];o=o+n;e=d[o];l[e[t]]=l[e[U]][e[B]];o=o+n;e=d[o];a=e[r];s=l[e[u]];l[a+1]=s;l[a]=s[e[M]];o=o+n;e=d[o];l[e[r]]=f[e[b]];o=o+n;e=d[o];l[e[c]]=l[e[b]];o=o+n;e=d[o];a=e[r]v,y=p(l[a](l[a+N]))_=y+a-n g=0;for e=a,_ do g=g+n;l[e]=v[g];end;o=o+n;e=d[o];a=e[h]l[a](D(l,a+N,_))o=o+n;e=d[o];o=e[u];break end;break;end break;end break;end break;end while(a)/((-40+0x15d))==1517 do a=(9463860)while s<=(211+-0x6e)do a-= a a=(4807044)while s<=(((0x1868-3137)+-#'test123')/0x20)do a-= a a=(6009232)while s<=(0x70d/19)do a-= a local a;l[e[c]]=l[e[i]][e[C]];o=o+n;e=d[o];l[e[x]]=e[U];o=o+n;e=d[o];l[e[t]]=e[O];o=o+n;e=d[o];l[e[x]]=e[O];o=o+n;e=d[o];l[e[t]]=e[O];o=o+n;e=d[o];a=e[h]l[a]=l[a](D(l,a+n,e[O]))o=o+n;e=d[o];l[e[c]][e[i]]=l[e[C]];o=o+n;e=d[o];l[e[k]]=f[e[O]];o=o+n;e=d[o];l[e[c]]=l[e[b]][e[C]];o=o+n;e=d[o];l[e[k]]=e[O];break;end while 2867==(a)/((0x6af30/209))do a=(11478408)while s>((0x111-163)+-#'zNugget is dad')do a-= a local t;local c;local a;l[e[r]]=e[O];o=o+n;e=d[o];l[e[x]]=e[b];o=o+n;e=d[o];l[e[h]]=#l[e[O]];o=o+n;e=d[o];l[e[x]]=e[i];o=o+n;e=d[o];a=e[k];c=l[a]t=l[a+2];if(t>0)then if(c>l[a+1])then o=e[b];else l[a+3]=c;end elseif(c<l[a+1])then o=e[O];else l[a+3]=c;end break end while(a)/(((0xba760/232)+-#"Bong"))==3491 do l[e[x]]={};break end;break;end break;end while 3582==(a)/(((-80+0x26ae4)/0x76))do a=(3227796)while(-#"Bong"+((-0x93+64)+0xba))>=s do a-= a a=(422240)while(139+-0x29)<s do a-= a l[e[x]]=(e[O]~=0);o=o+N;break end while 203==(a)/((4279-(0x1e108/56)))do local a;l[e[k]]=l[e[u]][e[P]];o=o+n;e=d[o];l[e[t]]=e[b];o=o+n;e=d[o];l[e[h]]=e[u];o=o+n;e=d[o];l[e[r]]=e[u];o=o+n;e=d[o];l[e[h]]=e[w];o=o+n;e=d[o];a=e[c]l[a]=l[a](D(l,a+n,e[O]))o=o+n;e=d[o];l[e[c]][e[i]]=l[e[M]];o=o+n;e=d[o];l[e[h]]=f[e[w]];o=o+n;e=d[o];l[e[h]]=l[e[u]][e[C]];o=o+n;e=d[o];l[e[c]]=e[O];break end;break;end while(a)/((0x3d896/134))==1716 do a=(10201084)while((28122/0x81)-0x76)<s do a-= a l[e[k]][l[e[b]]]=l[e[M]];break end while 3788==(a)/((0x1524-2719))do local a;l[e[h]]=l[e[u]][e[P]];o=o+n;e=d[o];l[e[t]]=e[w];o=o+n;e=d[o];l[e[r]]=e[b];o=o+n;e=d[o];l[e[t]]=e[w];o=o+n;e=d[o];l[e[c]]=e[U];o=o+n;e=d[o];a=e[x]l[a]=l[a](D(l,a+n,e[i]))o=o+n;e=d[o];l[e[c]][e[u]]=l[e[m]];o=o+n;e=d[o];l[e[c]]=f[e[O]];o=o+n;e=d[o];l[e[t]]=l[e[U]][e[P]];o=o+n;e=d[o];l[e[r]]=e[U];break end;break;end break;end break;end while 2610==(a)/((0x51718/(0x42d8/186)))do a=(6747975)while(143+-0x27)>=s do a-= a a=(2226320)while(0x114-174)>=s do a-= a l[e[c]]=(e[O]~=0);o=o+N;break;end while(a)/((-47+0xcf9))==680 do a=(1098108)while s>(0x141-218)do a-= a local r;local a;l[e[c]]=e[U];o=o+n;e=d[o];l[e[k]]=e[b];o=o+n;e=d[o];l[e[t]]=e[O];o=o+n;e=d[o];a=e[c]l[a]=l[a](D(l,a+n,e[O]))o=o+n;e=d[o];l[e[c]][e[b]]=l[e[m]];o=o+n;e=d[o];l[e[k]][e[i]]=e[S];o=o+n;e=d[o];l[e[k]]=l[e[w]][e[M]];o=o+n;e=d[o];a=e[x];r=l[e[U]];l[a+1]=r;l[a]=r[e[P]];break end while(a)/(((1365-0x2c1)+-#"Little kids"))==1692 do local e=e[x]l[e](l[e+N])break end;break;end break;end while 3845==(a)/((((628387-0x4cb6f)+-#"This is working now")/179))do a=(8083054)while((-20+0x8d)+-#"Nitro Activated")>=s do a-= a a=(4179728)while s>(269-0xa4)do a-= a l[e[t]][e[i]]=e[P];break end while(a)/((1919+-0x2b))==2228 do l[e[h]]=l[e[b]]-l[e[M]];break end;break;end while 2494==(a)/((0x1985-3292))do a=(2044998)while s>(0x8a+-31)do a-= a local e=e[h]local d,o=p(l[e](l[e+N]))_=o+e-n local o=0;for e=e,_ do o=o+n;l[e]=d[o];end;break end while 1394==(a)/((3030-0x61b))do local a;l[e[r]]=e[i];o=o+n;e=d[o];l[e[k]]=e[i];o=o+n;e=d[o];a=e[t]l[a]=l[a](D(l,a+n,e[w]))o=o+n;e=d[o];l[e[h]][e[w]]=l[e[S]];o=o+n;e=d[o];l[e[r]]=f[e[O]];o=o+n;e=d[o];l[e[k]]=l[e[O]][e[B]];o=o+n;e=d[o];l[e[x]]=l[e[b]][e[m]];o=o+n;e=d[o];l[e[c]][e[i]]=l[e[B]];o=o+n;e=d[o];l[e[x]][e[u]]=e[P];o=o+n;e=d[o];l[e[h]]=f[e[O]];break end;break;end break;end break;end break;end break;end break;end o+= N end;end);end;return j(A(),{},G())()end)_msec({[(0x4f86/174)]='\115\116'..(function(e)return(e and'(0x128-196)')or'\114\105'or'\120\58'end)(((3008/0xbc)+-#'dick cheese')==(-#[[Cock and ball torture]]+(3024/0x70)))..'\110g',[(-#{1,{},",",'nil'}+742)]='\108\100'..(function(e)return(e and'(17200/0xac)')or'\101\120'or'\119\111'end)((85-0x50)==(-83+0x59))..'\112',[(46480/0xa6)]=(function(e)return(e and'(-88+0xbc)')and'\98\121'or'\100\120'end)((205/0x29)==(400/0x50))..'\116\101',[(-#'no thanks'+(75764/0xbc))]='\99'..(function(e)return(e and'(-#[[Dick]]+(0x5ca0/(44232/0xc2)))')and'\90\19\157'or'\104\97'end)(((58-0x2a)+-#'Little kids')==(-#[[Bong]]+(0x47+-64)))..'\114',[(1188-0x276)]='\116\97'..(function(e)return(e and'(22500/(324+-0x63))')and'\64\113'or'\98\108'end)((-#'test123'+(-0x27+52))==((0xf4ec/57)/220))..'\101',[(106560/(227+-#{'}','nil';(function()return{','}end)(),'nil';(function()return#{('kMHKmH'):find("\72")}>0 and 1 or 0 end)}))]=(function(e)return(e and'(0xe7-131)')or'\115\117'or'\78\107'end)((696/0xe8)==((0xf78/88)+-#"zNugget is dad"))..'\98',[((887+-0x36)+-#"Nitro Activated")]='\99\111'..(function(e)return(e and'(0x23f0/92)')and'\110\99'or'\110\105\103\97'end)((-#'Dick'+(72+-0x25))==(149-0x76))..'\97\116',[((0x5e4-791)+-#"black mess more like white mesa")]=(function(e,o)return(e and'((0x3c45/139)+-#[[free trojan]])')and'\48\159\158\188\10'or'\109\97'end)((-#'test123'+(576/0x30))==(36+(-#"black mess more like white mesa"+(-0x11+18))))..'\116\104',[(0xa7b-1366)]=(function(o,e)return((0x23a/114)==((0x84-125)+-#'Bong')and'\48'..'\195'or o..((not'\20\95\69'and'\90'..'\180'or e)))or'\199\203\95'end),[(985+-#{54,",";54})]='\105\110'..(function(e,o)return(e and'(123+-0x17)')and'\90\115\138\115\15'or'\115\101'end)(((812-0x1ba)/74)==(0xb4-149))..'\114\116',[(1048+-#{180,{},","})]='\117\110'..(function(e,o)return(e and'(0x3714/141)')or'\112\97'or'\20\38\154'end)((68-0x3f)==(-#[[This is working now]]+(0x2cec/230)))..'\99\107',[(0x8ee-1155)]='\115\101'..(function(e)return(e and'(200/0x2)')and'\110\112\99\104'or'\108\101'end)((0x59-84)==(0xa89/87))..'\99\116',[(2529-0x4fc)]='\116\111\110'..(function(e,o)return(e and'(221-(0x5bb2/194))')and'\117\109\98'or'\100\97\120\122'end)((-#[[Nitro Activated]]+(480/0x18))==(-120+0x7d))..'\101\114'},{[(0x6f+-53)]=((getfenv))},((getfenv))()) end)()
-
-
+return library
